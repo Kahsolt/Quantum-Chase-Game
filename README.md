@@ -8,9 +8,14 @@
 
 ⚪ install
 
+- install [Miniconda](https://docs.conda.io/projects/miniconda/en/latest/) latest
 - `conda create -n isq python==3.8`
 - `conda activate isq`
 - `pip install -r requirements.txt`
+- run tests
+  - `cd playground` 
+  - run `basic.py`
+  - run `triple_dice.py.py`
 
 ⚪ run
 
