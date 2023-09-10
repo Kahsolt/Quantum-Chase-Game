@@ -5,3 +5,13 @@ __pycache__/
 # repo
 repo/*
 !repo/*.cmd
+
+# thesis
+thesis/*
+!thesis/*.cmd
+
+# games
+games/*
+
+# doc raw
+doc/*.pptx
