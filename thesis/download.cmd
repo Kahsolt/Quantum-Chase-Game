@@ -4,6 +4,11 @@ SETLOCAL
 SET dl=wget -nc --user-agent="Mozilla"
 
 
+:demo
+REM Quantum Bit Escrow
+%DL% https://arxiv.org/pdf/quant-ph/0004017.pdf
+
+
 :survey
 
 REM The History of Quantum Games
