@@ -15,3 +15,4 @@ games/*
 
 # doc raw
 doc/*.pptx
+doc/*.docx
