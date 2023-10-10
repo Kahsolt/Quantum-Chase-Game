@@ -8,6 +8,12 @@ from pathlib import Path
 from re import compile as Regex
 from typing import *
 
+import numpy as np
+from numpy import ndarray
+try:
+  from autograd.numpy.numpy_boxes import ArrayBox
+except ImportError:
+  ArrayBox = object
 from isq import LocalDevice, optv, optimizer
 
 number = Union[float, int]
@@ -15,7 +21,7 @@ number = Union[float, int]
 Circuit = str
 Params = List[float]
 CircuitPack = Tuple[Circuit, Params]
-State = List[float]
+State = ndarray
 Prob = List[float]
 Freq = List[number]
 
@@ -24,8 +30,9 @@ dec2bin = lambda x: bin(x)[2:]
 freq2prob = lambda x: {k: v / sum(x.values()) for k, v in x.items()}
 
 qvm = LocalDevice(shots=1000)
-REGEX_NQ = Regex('qbit q\[(\d+)\];')
 VARGS = 'theta'
+REGEX_NQ = Regex('qbit q\[(\d+)\];')
+REGEX_V  = Regex(f'{VARGS}\[\d+\]')
 
 class with_shots:
   def __init__(self, shots:int):
@@ -35,6 +42,10 @@ class with_shots:
     qvm._shots = self.shots
   def __exit__(self, exc_type, exc_val, exc_tb):
     qvm._shots = self.shots_saved
+
+
+def init_params(n_params:int) -> Params:
+  return np.random.uniform(low=-1, high=1, size=[n_params]) * (np.pi / 4) / 32
 
 
 def train_circuit(pack:CircuitPack, loss_fn:Callable[[Params], float], steps:int=1000, lr:float=0.1, eps:float=1e-8, log:bool=True) -> CircuitPack:
@@ -61,7 +72,8 @@ def run_circuit_state(pack:CircuitPack) -> State:
   line_data = qvm._ir.split('\n')
   qnum, qdic = check(line_data)
   state, mq = getstate(line_data, qnum, qdic, mod, **args)
-  return shift(state, qnum, mq).tolist()
+  state = shift(state, qnum, mq)
+  return state
 
 
 def run_circuit_probs(pack:CircuitPack) -> Prob:

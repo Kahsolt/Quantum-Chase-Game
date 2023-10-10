@@ -64,8 +64,8 @@ def train_random(weight:Weight, steps:int=5000, lr:float=0.07) -> CircuitPack:
   target = _weight2prob(weight)
   nq = int(math.log2(len(target)))
 
-  circuit, n_params = build_circuit(nq)
-  params = np.random.uniform(low=-1, high=1, size=[n_params]) * (np.pi / 4) / 32
+  circuit, np = build_circuit(nq)
+  params = init_params(np)
   pack = circuit, params
 
   def loss_fn(target:Prob, circuit:Circuit, params:Params) -> float:

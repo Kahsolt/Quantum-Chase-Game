@@ -13,11 +13,11 @@ from numpy import ndarray
 
 from qvm import *
 
-
+pi = np.pi
 eps = 1e-8
-rand  = lambda:   np.random.random()    # random float
+rand  = lambda  : np.random.random ()   # random float
 randn = lambda n: np.random.randint(n)  # random int
-randb = lambda:             randn(2)    # random bit
+randb = lambda  :           randn  (2)  # random bit
 
 
 def timer(fn):
