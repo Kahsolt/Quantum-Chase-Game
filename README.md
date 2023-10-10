@@ -19,7 +19,7 @@
 
 ⚪ run
 
-- what?
+- `cd server & python app.py`
 
 
 ### references
