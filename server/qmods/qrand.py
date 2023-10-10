@@ -6,6 +6,9 @@
 
 from utils import *
 
+Weight = List[number]
+kl_div = lambda x, y: np.mean(x * (np.log(x + eps) - np.log(y + eps)))
+
 
 def make_random(weight:Weight, retry:int=5) -> CircuitPack:
   while retry > 0:
@@ -48,7 +51,6 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
         QCIR.append(f'CNOT(q[{x}], q[{y}]);')
 
   circuit = '\n'.join([QREG] + QCIR + [QMES])
-  n_params += 1
 
   if not 'debug':
     print('n_params:', n_params)
@@ -56,34 +58,37 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
 
   return circuit, n_params
 
+
 @timer
 def train_random(weight:Weight, steps:int=5000, lr:float=0.07) -> CircuitPack:
-  target = weight2prob(weight)
+  target = _weight2prob(weight)
   nq = int(math.log2(len(target)))
 
   circuit, n_params = build_circuit(nq)
-  params = np.random.uniform(low=-np.pi/4, high=np.pi/4, size=[n_params])
+  params = np.random.uniform(low=-1, high=1, size=[n_params]) * (np.pi / 4) / 32
+  pack = circuit, params
 
-  def loss_fn(params:Params) -> float:
-    probs = run_circuit((circuit, params))
+  def loss_fn(target:Prob, circuit:Circuit, params:Params) -> float:
+    probs = run_circuit_probs((circuit, params))
     return ((probs - target)**2).sum()   # mseloss
 
-  opt = optimizer(lr=lr)
-  for i in range(steps):
-    params, loss = opt.opt(loss_fn, params)
-    if loss < eps: break
-    if i % 100 == 0: print(f'[step {i}] loss: {loss}')
-    if i % 1000 == 0: opt._lr /= 2
-
-  return circuit, params
+  return train_circuit(pack, partial(loss_fn, target, circuit), steps, lr)
 
 
 def verify_random(pack:CircuitPack, weight:Weight, shots:int=10000) -> float:
   ''' KL-div for distribution, the smaller the better '''
 
-  target = weight2prob(weight)
+  target = _weight2prob(weight)
   freq = sample_circuit(pack, shots, fmt='frq')
   return kl_div(np.asarray(freq), np.asarray(target))
+
+
+def _weight2prob(weight:Weight) -> Prob:
+  w = np.asarray(weight)
+  prob = w / w.sum()
+  nc = len(prob) ; assert nc >= 2, 'prob dist length must >= 2'
+  nq = math.ceil(math.log2(nc))
+  return np.pad(np.asarray(prob), (0, 2 ** nq - nc)).tolist()
 
 
 if __name__ == '__main__':
