@@ -1,0 +1,11 @@
+import std;
+
+qbit a, b;
+
+procedure main()
+{
+    H(a);
+    CNOT(a, b);
+    print M(a);
+    print M(b);
+}

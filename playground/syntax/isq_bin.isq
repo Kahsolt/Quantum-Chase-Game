@@ -1,0 +1,10 @@
+import std;
+
+procedure main() {
+  qbit q[2];
+  H(q[0]);
+  ctrl X(q[0], q[1]);
+  int a = M(q[0]);
+  int b = M(q[1]);
+  print a - b;
+}

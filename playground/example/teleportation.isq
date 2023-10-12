@@ -1,0 +1,22 @@
+import std;
+
+procedure transform(qbit a, qbit b, qbit c) {
+    // Prepare the EPR pair
+    H(b);
+    CNOT(b, c);
+
+    CNOT(a, b);
+    H(a);
+
+    // Fix up the state based on measurement result
+    if (M(b)) { X(c); }
+    if (M(a)) { Z(c); }
+}
+
+procedure main()
+{
+    qbit q[3];
+    Rx(pi/3, q[0]); // Set initial state as 'sqrt(0.75)|0>-sqrt(0.25)i|1>'
+    transform(q[0], q[1], q[2]);
+    print M(q[2]);
+}

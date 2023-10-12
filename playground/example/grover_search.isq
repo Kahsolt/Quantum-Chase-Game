@@ -1,0 +1,41 @@
+import std;
+
+oracle U_omega(3,1) = [0,1,0,0,0,0,0,0];
+
+defgate U0 = [
+    1, 0, 0, 0, 0, 0, 0, 0;
+    0, -1, 0, 0, 0, 0, 0, 0;
+    0, 0, -1, 0, 0, 0, 0, 0;
+    0, 0, 0, -1, 0, 0, 0, 0;
+    0, 0, 0, 0, -1, 0, 0, 0;
+    0, 0, 0, 0, 0, -1, 0, 0;
+    0, 0, 0, 0, 0, 0, -1, 0;
+    0, 0, 0, 0, 0, 0, 0, -1
+];
+
+qbit q[3];
+qbit anc;
+
+int grover_search() {
+    // Initialize
+    H(q);
+    X(anc);
+    H(anc);
+
+    // Grover iterations
+    for i in 0:2 {
+        U_omega(q[2], q[1], q[0], anc);
+        H(q);
+        U0(q[2], q[1], q[0]);
+        H(q);
+    }
+
+    // Finilize
+    H(anc);
+    X(anc);
+    return M(q);
+}
+
+procedure main(){
+    print grover_search();
+}

@@ -1,0 +1,56 @@
+import std;
+
+int num_qubits = 2; 
+
+// Hamiltonian gates: Z0, Z1, Z0Z1, Y0Y1, X0X2 
+int pauli_gates[] = [
+    3, 0,
+    0, 3,
+    3, 3,
+    2, 2,
+    1, 1
+];
+
+unit vqe_measure(qbit q[], int idx) {
+    // using arrays for pauli measurement
+    // I:0, X:1, Y:2, Z:3 
+    int start_idx = num_qubits*idx;
+    int end_idx = num_qubits*(idx+1);
+
+    for i in start_idx:end_idx {
+        if (pauli_gates[i] == 0) {
+            // I:0
+            continue;
+        }
+        if (pauli_gates[i] == 1) {
+            // X:1
+            H(q[i%num_qubits]);
+            M(q[i%num_qubits]);
+        }
+        if (pauli_gates[i] == 2) {
+            // Y:2
+            X2P(q[i%num_qubits]);
+            M(q[i%num_qubits]);
+        }
+        if (pauli_gates[i] == 3) {
+            // Z:3
+            M(q[i%num_qubits]);
+        }
+    }
+}
+
+unit main(int i_par[], double d_par[]) {
+
+    qbit q[2];
+    X(q[1]);
+
+    Ry(1.57, q[0]);
+    Rx(4.71, q[1]);
+    CNOT(q[0],q[1]);
+    Rz(d_par[0], q[1]);
+    CNOT(q[0],q[1]);
+    Ry(4.71, q[0]);
+    Rx(1.57, q[1]);
+
+    vqe_measure(q, i_par[0]);
+}

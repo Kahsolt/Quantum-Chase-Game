@@ -1,0 +1,20 @@
+import std;
+
+oracle bool[1] g(bool a[4]) {
+    bool s[] = [true, true, false, true];
+    bool ba[] = s & a;  // bit-wise AND
+    bool res[1];
+    res[0] = ba[0] != ba[1] != ba[2] != ba[3];
+    return res;
+}
+
+procedure main()
+{
+    qbit q[4], res[1];
+    X(res);
+    H(res);
+    H(q);
+    g(q, res);
+    H(q); 
+    print M(q); // should print 11 (=0x1011)
+}
