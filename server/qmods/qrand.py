@@ -6,6 +6,7 @@
 
 from utils import *
 
+number = Union[float, int]
 Weight = List[number]
 kl_div = lambda x, y: np.mean(x * (np.log(x + eps) - np.log(y + eps)))
 

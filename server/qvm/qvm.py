@@ -59,34 +59,26 @@ def run_circuit_probs(pack:CircuitPack) -> Prob:
   return qvm.probs(circuit, **kwargs)
 
 
-def shot_circuit(pack:CircuitPack, base:int=2) -> Union[str, int]:
+def shot_circuit(pack:CircuitPack) -> str:
   ''' QMeasure once '''
 
-  assert base in [2, 10], '`base` must be 2 or 10'
   circuit, params = pack
   with with_shots(1):
     res = qvm.run(circuit, **{VARGS: optv(params)})
-  cb = list(res.keys())[0]
-  if base == 2: return cb
-  else: return bin2dec(cb)
+  cb: str = list(res.keys())[0]
+  return bin2dec(cb)
 
 
-def sample_circuit(pack:CircuitPack, shots:int, fmt:str='cnt') -> Freq:
+def sample_circuit(pack:CircuitPack, shots:int=SHOTS) -> Freq:
   ''' QMeasure many '''
   
-  assert shots > 0, '`shots` must be postive'
-  assert fmt in ['cnt', 'frq'], '`fmt` must be "cnt" or "frq"'
+  assert shots > 0, f'`shots` must be postive, but got {shots}'
   circuit, params = pack
   with with_shots(shots):
     res = qvm.run(circuit, **{VARGS: optv(params)})
 
-  nq = int(REGEX_NQ.findall(circuit)[0][0])
-  nc = 2 ** nq
-  if fmt == 'cnt':
-    ret = [0] * nc
-  else:
-    res = freq2prob(res)
-    ret = [0.0] * nc
+  nq = int(REGEX_NQ.findall(circuit)[0][0])   # FIXME: this is not safe :(
+  ret = [0] * (2 ** nq)
   for k, v in res.items():
     ret[bin2dec(k)] = v
   return ret
@@ -126,23 +118,17 @@ if __name__ == '__main__':
   res = run_circuit_state(pack)
   print('[run_circuit_state]')
   print('>>', res)
+
   res = run_circuit_probs(pack)
   print('[run_circuit_probs]')
   print('>>', res)
 
-  print('[shot_circuit] (base=2)')
-  res = shot_circuit(pack, base=2)
-  print('>>', res)
-  print('[shot_circuit] (base=10)')
-  res = shot_circuit(pack, base=10)
-  print('>>', res)
+  print('[shot_circuit]')
+  res = shot_circuit(pack)
+  print('>> dec:', res)
+  print('>> bin:', dec2bin(res))
 
-  res = sample_circuit(pack, shots=100, fmt='cnt')
-  print('[sample_circuit] (shots=100, fmt=cnt)')
-  print('>>', res)
-  res = sample_circuit(pack, shots=1000, fmt='cnt')
-  print('[sample_circuit] (shots=1000, fmt=cnt)')
-  print('>>', res)
-  res = sample_circuit(pack, shots=500, fmt='frq')
-  print('[sample_circuit] (shots=500, fmt=frq)')
-  print('>>', res)
+  res = sample_circuit(pack, shots=100)
+  print('[sample_circuit] (shots=100)')
+  print('>> freq:', res)
+  print('>> prob:', freq2prob(res))
