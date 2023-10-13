@@ -2,14 +2,10 @@
 # Author: Armit
 # Create Time: 2023/10/10
 
-import os
-import psutil
-from pathlib import Path
-from traceback import print_exc
-from typing import *
-
 from flask import Flask, request, Response
 from flask import redirect, jsonify
+
+from modules import *
 
 BASE_PATH = Path(__file__).parent.absolute()
 PORT = os.environ.get('PORT', 5000)
@@ -28,22 +24,18 @@ def api_init():
   pass
 
 
-@app.route('/debug')
-def debug():
-  import gc ; gc.collect()
-  pid = os.getpid()
-  loadavg = psutil.getloadavg()
-  p = psutil.Process(pid)
-  meminfo = p.memory_full_info()
+@app.route('/info')
+def api_info():
+  loadavg, (rss, vms, mem_usage) = mem_info()
 
   return f'''
 <div>
   <p>pwd: {os.getcwd()}</p>
   <p>BASE_PATH: {BASE_PATH}</p>
   <p>loadavg: {loadavg}</p>
-  <p>mem use: {meminfo.rss / 2**20:.3f} MB</p>
-  <p>mem vms: {meminfo.vms / 2**20:.3f} MB</p>
-  <p>mem percent: {p.memory_percent()} %</p>
+  <p>mem use: {rss:.3f} MB</p>
+  <p>mem vms: {vms:.3f} MB</p>
+  <p>mem percent: {mem_usage} %</p>
 </div>
 '''
 

@@ -1,10 +1,10 @@
 @ECHO OFF
 
-REM start clound isq-server on docker
-CALL qcloud\start.cmd
+REM start cloud service `run-isq` on docker
+CALL isq-run\start.cmd
 IF ERRORLEVEL 1 GOTO ERROR
 
-REM start local isq-server
+REM start local isq & game server
 python app.py
 
 :ERROR

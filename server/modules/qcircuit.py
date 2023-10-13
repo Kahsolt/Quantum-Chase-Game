@@ -2,8 +2,9 @@
 # Author: Armit
 # Create Time: 2023/10/11
 
-from qvm import run_circuit_probs, sample_circuit
-from utils import *
+# utils converting GUI repr to isQ repr
+
+from qlocal import *
 
 # gate, param, qubits
 # e.g.:
@@ -13,7 +14,6 @@ from utils import *
 #   (RY, 4, 0)          => RY({VARGS}[4], q[0])
 #   (CNOT, None, (0,1)) => CNOT(q[0], q[1])
 Operation = Tuple[str, Optional[Union[str, float, int]], Union[int, Tuple[int]]]
-
 
 def convert_circuit(operations:List[Operation], nq:int) -> Tuple[Circuit, int]:
   ''' convert GUI circuit to isq format '''
@@ -78,7 +78,7 @@ if __name__ == '__main__':
   print(circuit)
   print()
 
-  theta = np.random.uniform(size=[n_params])
+  theta = init_params(n_params)
   pack = (circuit, theta)
 
   res = run_circuit_probs(pack)

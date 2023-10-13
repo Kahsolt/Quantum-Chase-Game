@@ -4,20 +4,22 @@
 
 # train an arbitrary distribution random generator with vqc
 
-from utils import *
+import math
+from functools import partial
 
-number = Union[float, int]
-Weight = List[number]
-kl_div = lambda x, y: np.mean(x * (np.log(x + eps) - np.log(y + eps)))
+from qlocal import *
+
+Weight = List[Union[float, int]]
+kl_div = lambda x, y: np.mean(x * (np.log(x + 1e-15) - np.log(y + 1e-15)))
 
 
-def make_random(weight:Weight, retry:int=5) -> CircuitPack:
+def make_random(weight:Weight, retry:int=5, thresh:float=0.1) -> CircuitPack:
   while retry > 0:
     pack = train_random(weight)
     score = verify_random(pack, weight)
-    if score <= 0.1: break
+    if score <= thresh: break
     retry -= 1
-  if score > 0.1:
+  if score > thresh:
     raise Exception(f'cannot make random on weights: {weight}')
   return pack
 
@@ -80,7 +82,7 @@ def verify_random(pack:CircuitPack, weight:Weight, shots:int=10000) -> float:
   ''' KL-div for distribution, the smaller the better '''
 
   target = _weight2prob(weight)
-  freq = sample_circuit(pack, shots, fmt='frq')
+  freq = freq2prob(sample_circuit(pack, shots))
   return kl_div(np.asarray(freq), np.asarray(target))
 
 
@@ -98,7 +100,11 @@ if __name__ == '__main__':
   sc = verify_random(pack, weight, shots=30000)
   print('kl_div score:', sc)
 
+  for _ in range(10):
+    res = shot_circuit(pack)
+    print(res)
+
   res = sample_circuit(pack, shots=1000)
   print(res)
-  res = sample_circuit(pack, shots=3000, fmt='frq')
+  res = sample_circuit(pack, shots=3000)
   print(res)

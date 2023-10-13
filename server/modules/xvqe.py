@@ -4,7 +4,10 @@
 
 # VQE: train a vqc to approx minimal eigen of given ham matrix
 
-from utils import *
+from functools import partial
+
+from qcloud import *
+from qlocal import *
 
 Ham = ndarray
 EigenVal = float
@@ -44,7 +47,6 @@ def vqe_solver(circuit:Circuit, ham:Ham) -> Eigen:
 
   pack = train_circuit(pack, partial(loss_fn, circuit), steps=5000, lr=0.1)
   state = run_circuit_state(pack)
-  breakpoint()
   gs_ene = exp_ham(ham, state)
   return gs_ene, state
 

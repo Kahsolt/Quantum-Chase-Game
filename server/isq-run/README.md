@@ -14,7 +14,7 @@ Run a container:
 
 Test the service:
 
-- run `python ..\qvm\qcloud.py`
+- run `python ..\modules\qcloud.py`
 
 Stop the container:
 

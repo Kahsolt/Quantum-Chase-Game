@@ -4,7 +4,27 @@
 
 # The isQ-open (reduced version) service
 
+import json
+from pathlib import Path
+from re import compile as Regex
+from isq import LocalDevice, optv, optimizer
+
 from utils import *
+
+Circuit = str
+Params = List[float]
+CircuitPack = Tuple[Circuit, Params]
+State = ndarray
+Prob = List[float]
+Freq = List[int]
+
+VARGS = 'theta'
+REGEX_NQ = Regex('qbit q\[(\d+)\];')
+REGEX_V  = Regex(f'{VARGS}\[\d+\]')
+
+bin2dec = lambda x: int(x, base=2)
+dec2bin = lambda x: bin(x)[2:]
+freq2prob = lambda x: (np.asarray(x) / sum(x)).tolist()
 
 qvm = LocalDevice(shots=SHOTS)
 
@@ -19,8 +39,8 @@ class with_shots:
     qvm._shots = self.shots_saved
 
 
-def init_params(n_params:int) -> Params:
-  return np.random.uniform(low=-1, high=1, size=[n_params]) * (np.pi / 4) / 32
+def init_params(n_params:int, w:float=1e-3) -> Params:
+  return np.random.uniform(low=-1, high=1, size=[n_params]) * pi * w 
 
 
 def train_circuit(pack:CircuitPack, loss_fn:Callable[[Params], float], steps:int=1000, lr:float=0.1, eps:float=1e-8, log:bool=True) -> CircuitPack:
@@ -63,8 +83,10 @@ def shot_circuit(pack:CircuitPack) -> str:
   ''' QMeasure once '''
 
   circuit, params = pack
+  kwargs = {VARGS: optv(params)}
+  kwargs = {VARGS: optv(params)}
   with with_shots(1):
-    res = qvm.run(circuit, **{VARGS: optv(params)})
+    res = qvm.run(circuit, **kwargs)
   cb: str = list(res.keys())[0]
   return bin2dec(cb)
 
@@ -74,8 +96,9 @@ def sample_circuit(pack:CircuitPack, shots:int=SHOTS) -> Freq:
   
   assert shots > 0, f'`shots` must be postive, but got {shots}'
   circuit, params = pack
+  kwargs = {VARGS: optv(params)}
   with with_shots(shots):
-    res = qvm.run(circuit, **{VARGS: optv(params)})
+    res = qvm.run(circuit, **kwargs)
 
   nq = int(REGEX_NQ.findall(circuit)[0][0])   # FIXME: this is not safe :(
   ret = [0] * (2 ** nq)
@@ -115,7 +138,7 @@ if __name__ == '__main__':
   save_circuit(pack, fp)
   pack = load_circuit(fp)
 
-  res = run_circuit_state(pack)
+  res = run_circuit_state(pack).tolist()
   print('[run_circuit_state]')
   print('>>', res)
 
@@ -128,7 +151,7 @@ if __name__ == '__main__':
   print('>> dec:', res)
   print('>> bin:', dec2bin(res))
 
-  res = sample_circuit(pack, shots=100)
-  print('[sample_circuit] (shots=100)')
+  res = sample_circuit(pack, shots=1000)
+  print('[sample_circuit] (shots=1000)')
   print('>> freq:', res)
   print('>> prob:', freq2prob(res))

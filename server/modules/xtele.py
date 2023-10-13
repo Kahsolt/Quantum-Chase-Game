@@ -4,10 +4,11 @@
 
 # implement the quantum teleportation: sends an arbitary quantum state through pre-distributed EPR-pair and classical communication between
 
-from utils import *
+from qcloud import *
+from qlocal import *
+from qbloch import *
 
 Phi = Tuple[complex, complex]
-rand_pi = lambda: (rand() * 2 - 1) * pi
 
 
 def make_teleportation(phi:Phi) -> Circuit:
@@ -29,10 +30,10 @@ unit main() {
 
   // bob
   if (c2 == 1) { Z(q[1]); }
-  if (c0 == 1) { x(q[1]); }
+  if (c0 == 1) { X(q[1]); }
   M(q[1]);
 }
-'''.replace('ENCODE_STATE', encode_state(*phi, 2))
+'''.replace('ENCODE_STATE', encode_state(phi, 2))
 
   if not 'debug':
     print(circuit)
@@ -40,19 +41,16 @@ unit main() {
   return circuit
 
 
-def encode_state(a:complex, b:complex, qubit:int=0) -> Circuit:
+def encode_state(phi, qubit:int=0) -> Circuit:
   ''' prepare state: |phi> = a|0> + b|1> '''
-  
-  tht = 2 * np.arccos(a)
-  phi = np.log(b / np.sin(tht / 2) + 1e-15) / 1j
-  lbd = 0
-  breakpoint()
-  return f'U3({tht}, {phi}, {lbd}, q[{qubit}]);'
+  tht, psi = phi2loc(phi)
+  return f'U3({tht}, {psi}, 0, q[{qubit}]);'
 
 
 def rand_phi() -> Phi:
-  a, b, c, d = rand_pi(), rand_pi(), rand_pi(), rand_pi()
-  phi = np.asarray([complex(a, b), complex(c, d)], dtype=np.complex128)
+  tht = rand() * pi
+  psi = rand() * 2 * pi
+  phi = loc2phi((tht, psi))
   phi /= phi[0]
   phi /= abs(phi)
   return phi.tolist()
@@ -68,7 +66,7 @@ def test_encode_state(cnt:int=10):
   for _ in range(cnt):
     phi = rand_phi()
     print('phi:', phi)
-    cir = circuit.replace('ENCODE_STATE', encode_state(*phi))
+    cir = circuit.replace('ENCODE_STATE', encode_state(phi))
     print(cir)
     res = run_circuit_state((cir, None))
     print(res)
@@ -81,14 +79,9 @@ if __name__ == '__main__':
   phi = rand_phi()
   print('phi:', phi)
 
-  circuit = make_teleportation(phi)
-  print('circuit:')
-  print(circuit)
-  pack = (circuit, None)
+  isq = make_teleportation(phi)
+  print('prog:')
+  print(isq)
 
-  res = run_circuit_state(pack)
-  print(res)
-  res = run_circuit_probs(pack)
-  print(res)
-  res = sample_circuit(pack, 1000)
+  res = submit_program(isq)
   print(res)

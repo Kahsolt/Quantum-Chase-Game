@@ -7,7 +7,8 @@
 import requests as R
 from requests import Response
 
-from utils import Freq, SHOTS
+from qlocal import Freq
+from utils import SHOTS, timer
 
 API_BASE = 'http://127.0.0.1:5001'
 
@@ -32,19 +33,24 @@ def submit_program(prog:str, shots:int=SHOTS) -> Freq:
 
 if __name__ == '__main__':
   isq = '''
-import std;
-qbit q[2];
-unit bell_state() {
-  H(q[0]);
-  CNOT(q[0], q[1]);
-}
-unit main() {
-  bell_state();
-  int a = M(q[0]);
-  int b = M(q[1]);
-  print a + b;
-}
-'''.strip()
-  
-  res = submit_program(isq, 100)
-  print(res)
+    import std;
+    qbit q[2];
+    unit bell_state() {
+      H(q[0]);
+      CNOT(q[0], q[1]);
+    }
+    unit main() {
+      bell_state();
+      int a = M(q[0]);
+      int b = M(q[1]);
+      print a + b;
+    }
+  '''
+
+  @timer
+  def run(shot:int):
+    res = submit_program(isq, shot)
+    print(res)
+
+  for shot in [100, 500, 1000, 5000, 10000, 30000]:
+    run(shot)

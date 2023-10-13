@@ -12,7 +12,7 @@
   - `pip install -r requirements.txt`
 - install [Docker](https://www.docker.com/)
   - `docker pull kahsolt/isq-run:latest`
-- run integrity check: `check.cmd`
+- run integrity check: `run_check.cmd`
 
 ### start
 
