@@ -2,7 +2,8 @@
 # Author: Armit
 # Create Time: 2023/10/11
 
-from qvm import *
+from qvm import run_circuit_probs, sample_circuit
+from utils import *
 
 # gate, param, qubits
 # e.g.:

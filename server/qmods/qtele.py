@@ -28,20 +28,8 @@ unit main() {
   int c1 = M(q[2]);
 
   // bob
-  if (c2 == 0) {
-    if (c0 == 0) {
-      ;
-    } else {
-      X(q[1]);
-    }
-  } else {
-    if (c0 == 0) {
-      Z(q[1]);
-    } else {
-      Z(q[1]);
-      X(q[1]);
-    }
-  }
+  if (c2 == 1) { Z(q[1]); }
+  if (c0 == 1) { x(q[1]); }
   M(q[1]);
 }
 '''.replace('ENCODE_STATE', encode_state(*phi, 2))

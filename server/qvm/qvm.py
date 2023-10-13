@@ -2,37 +2,12 @@
 # Author: Armit
 # Create Time: 2023/10/10
 
-import os
-import json
-from pathlib import Path
-from re import compile as Regex
-from typing import *
+# The isQ-open (reduced version) service
 
-import numpy as np
-from numpy import ndarray
-try:
-  from autograd.numpy.numpy_boxes import ArrayBox
-except ImportError:
-  ArrayBox = object
-from isq import LocalDevice, optv, optimizer
+from utils import *
 
-number = Union[float, int]
+qvm = LocalDevice(shots=SHOTS)
 
-Circuit = str
-Params = List[float]
-CircuitPack = Tuple[Circuit, Params]
-State = ndarray
-Prob = List[float]
-Freq = List[number]
-
-bin2dec = lambda x: int(x, base=2)
-dec2bin = lambda x: bin(x)[2:]
-freq2prob = lambda x: {k: v / sum(x.values()) for k, v in x.items()}
-
-qvm = LocalDevice(shots=1000)
-VARGS = 'theta'
-REGEX_NQ = Regex('qbit q\[(\d+)\];')
-REGEX_V  = Regex(f'{VARGS}\[\d+\]')
 
 class with_shots:
   def __init__(self, shots:int):

@@ -2,16 +2,12 @@
 .vscode/
 __pycache__/
 
-# repo
-repo/*
-!repo/*.cmd
-
-# thesis
-thesis/*
-!thesis/*.cmd
-
-# games
-games/*
+# ref
+ref/games/
+ref/repo/*
+!ref/repo/*.cmd
+ref/thesis/*
+!ref/thesis/*.cmd
 
 # doc raw
 doc/*.pptx
