@@ -16,6 +16,7 @@ Params = List[float]
 CircuitPack = Tuple[Circuit, Params]
 State = ndarray
 Prob = List[float]
+Cntr = Dict[str, int]
 Freq = List[int]
 
 VARGS = 'theta'
@@ -25,6 +26,13 @@ REGEX_V  = Regex(f'{VARGS}\[\d+\]')
 bin2dec = lambda x: int(x, base=2)
 dec2bin = lambda x: bin(x)[2:]
 freq2prob = lambda x: (np.asarray(x) / sum(x)).tolist()
+
+def cntr2freq(cntr:Cntr, circuit:Circuit) -> Freq:
+  nq = int(REGEX_NQ.findall(circuit)[0][0])   # FIXME: this is not safe :(
+  ret = [0] * (2 ** nq)
+  for k, v in cntr.items():
+    ret[bin2dec(k)] = v
+  return ret
 
 qvm = LocalDevice(shots=SHOTS)
 
@@ -37,7 +45,7 @@ class with_shots:
     qvm._shots = self.shots
   def __exit__(self, exc_type, exc_val, exc_tb):
     qvm._shots = self.shots_saved
-
+  
 
 def init_params(n_params:int, w:float=1e-3) -> Params:
   return np.random.uniform(low=-1, high=1, size=[n_params]) * pi * w 
@@ -99,12 +107,7 @@ def sample_circuit(pack:CircuitPack, shots:int=SHOTS) -> Freq:
   kwargs = {VARGS: optv(params)}
   with with_shots(shots):
     res = qvm.run(circuit, **kwargs)
-
-  nq = int(REGEX_NQ.findall(circuit)[0][0])   # FIXME: this is not safe :(
-  ret = [0] * (2 ** nq)
-  for k, v in res.items():
-    ret[bin2dec(k)] = v
-  return ret
+  return cntr2freq(res, circuit)
 
 
 def save_circuit(pack:CircuitPack, fp:Path):

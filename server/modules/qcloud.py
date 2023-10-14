@@ -7,28 +7,32 @@
 import requests as R
 from requests import Response
 
-from qlocal import Freq
+from qlocal import Freq, cntr2freq
 from utils import SHOTS, timer
 
 API_BASE = 'http://127.0.0.1:5001'
 
 
 def POST(api:str, payload:object) -> Freq:
-  resp: Response = R.post(f'{API_BASE}{api}', json=payload, timeout=5)
+  resp: Response = R.post(f'{API_BASE}{api}', json=payload, timeout=30)
   if not resp.ok:
-    raise RuntimeError(f'HTTP error: {resp.status_code} {resp.reason}')
+    err = f'HTTP error: {resp.status_code} {resp.reason}'
+    print('>> Error:', err)
+    raise RuntimeError(err)
   return resp.json()
 
 
-def submit_program(prog:str, shots:int=SHOTS) -> Freq:
+def submit_program(isq:str, shots:int=SHOTS) -> Freq:
   payload = {
-    'isq': prog,
+    'isq': isq,
     'shots': shots
   }
-  r =  POST('/run', payload)
+  r = POST('/run', payload)
   if not r['ok']:
-    raise RuntimeError(r['error'])
-  return r['data']
+    err = r['error']
+    print('>> Error:', err)
+    raise RuntimeError(err)
+  return cntr2freq(r['data'], isq)
 
 
 if __name__ == '__main__':
@@ -52,5 +56,5 @@ if __name__ == '__main__':
     res = submit_program(isq, shot)
     print(res)
 
-  for shot in [100, 500, 1000, 5000, 10000, 30000]:
+  for shot in [100, 500, 1000, 5000, 10000, 50000]:
     run(shot)

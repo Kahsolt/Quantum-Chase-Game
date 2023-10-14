@@ -8,80 +8,55 @@ from qcloud import *
 from qlocal import *
 from qbloch import *
 
-Phi = Tuple[complex, complex]
+
+@timer
+def teleport(phi:Phi) -> Freq:
+  isq = build_circuit(phi)
+  res = submit_program(isq, 3000)
+  return sum(res[::2]), sum(res[1::2])
 
 
-def make_teleportation(phi:Phi) -> Circuit:
-  ''' quantum teleportation circuit '''
+def build_circuit(phi:Phi) -> Circuit:
+  ''' quantum teleportation circuit: Alice(|0>,|1>) Bob(|2>) '''
 
-  circuit = '''
-qbit q[3];
-unit main() {
-  // charlie
-  H(q[0]);
-  CNOT(q[0], q[1]);
-
-  // alice
-  ENCODE_STATE
-  CNOT(q[2], q[0]);
-  H(q[2]);
-  int c0 = M(q[0]);
-  int c1 = M(q[2]);
-
-  // bob
-  if (c2 == 1) { Z(q[1]); }
-  if (c0 == 1) { X(q[1]); }
-  M(q[1]);
-}
-'''.replace('ENCODE_STATE', encode_state(phi, 2))
-
-  if not 'debug':
-    print(circuit)
-
-  return circuit
+  return '''
+    import std;
+    qbit q[3];
+    unit main() {
+      H(q[1]);
+      CNOT(q[1], q[2]);
+      ENCODE_STATE
+      CNOT(q[0], q[1]);
+      H(q[0]);
+      if (M(q[1])) { X(q[2]); }
+      if (M(q[0])) { Z(q[2]); }
+      M(q[2]);
+    }
+  '''.replace('ENCODE_STATE', encode_state(phi, 0))
 
 
-def encode_state(phi, qubit:int=0) -> Circuit:
+def encode_state(phi, qubit:int=0, impl:str='U3') -> Circuit:
   ''' prepare state: |phi> = a|0> + b|1> '''
+
   tht, psi = phi2loc(phi)
-  return f'U3({tht}, {psi}, 0, q[{qubit}]);'
 
-
-def rand_phi() -> Phi:
-  tht = rand() * pi
-  psi = rand() * 2 * pi
-  phi = loc2phi((tht, psi))
-  phi /= phi[0]
-  phi /= abs(phi)
-  return phi.tolist()
-
-
-def test_encode_state(cnt:int=10):
-  circuit = '''
-    qbit q[1];
-    ENCODE_STATE
-    M(q[0]);
-  }'''
-
-  for _ in range(cnt):
-    phi = rand_phi()
-    print('phi:', phi)
-    cir = circuit.replace('ENCODE_STATE', encode_state(phi))
-    print(cir)
-    res = run_circuit_state((cir, None))
-    print(res)
+  if impl == 'U3':
+    encoder = f'U3({tht:.5f}, {psi:.5f}, 0, q[{qubit}]);'
+  else:
+    encoder = f'''
+      Ry({tht:.5f}, q[{qubit}]);
+      Rz({psi:.5f}, q[{qubit}]);
+      GPhase({psi/2:.5f});
+    '''
+  return encoder
 
 
 if __name__ == '__main__':
-  test_encode_state(10)
-  print()
-
   phi = rand_phi()
   print('phi:', phi)
+  prob = phi2prob(phi)
+  print('prob:', prob)
 
-  isq = make_teleportation(phi)
-  print('prog:')
-  print(isq)
-
-  res = submit_program(isq)
-  print(res)
+  c0, c1 = teleport(phi)
+  tot = c0 + c1
+  print(f'p0 = {c0 / tot:.3f}, p1 = {c1 / tot:.3f}')

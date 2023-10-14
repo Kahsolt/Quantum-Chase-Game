@@ -6,7 +6,7 @@ from qbloch import *
 
 # app
 from xrand import make_random, verify_random
-from xtele import make_teleport
+from xtele import teleport
 from xvqe import gen_ham, convert_circuit, npy_solver, vqe_solver, calc_error
 
 # utils

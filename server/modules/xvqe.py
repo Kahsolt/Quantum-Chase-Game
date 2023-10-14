@@ -14,8 +14,6 @@ EigenVal = float
 EigenVec = ndarray
 Eigen = Tuple[EigenVal, EigenVec]
 
-eps = 1e-5
-
 
 def gen_ham(nq:int=2) -> Ham:
   dim = 2 ** nq
