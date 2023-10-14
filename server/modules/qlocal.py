@@ -19,6 +19,10 @@ Prob = List[float]
 Cntr = Dict[str, int]
 Freq = List[int]
 
+intb = Union[Literal[0], Literal[1]]
+bit = intb    # classical bit
+bas = intb    # Z/X basis
+
 VARGS = 'theta'
 REGEX_NQ = Regex('qbit q\[(\d+)\];')
 REGEX_V  = Regex(f'{VARGS}\[\d+\]')

@@ -18,6 +18,7 @@ python modules\qcircuit.py
 python modules\qbloch.py
 
 python modules\xrand.py
+python modules\xcoin.py
 python modules\xtele.py
 python modules\xvqe.py
 
