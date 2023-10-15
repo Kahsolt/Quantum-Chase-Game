@@ -12,6 +12,41 @@ from qlocal import *
 Weight = List[Union[float, int]]
 kl_div = lambda x, y: np.mean(x * (np.log(x + 1e-15) - np.log(y + 1e-15)))
 
+# n-faces dice (cached)
+dices: Dict[int, CircuitPack] = {}
+
+
+def random_bit() -> bit:
+  return random_int(2)
+
+
+def random_int(n:int) -> int:
+  assert n >= 2, 'n should >=2'
+
+  pack = _prepare_dice(n)
+  return shot_circuit(pack)
+
+
+def random_float() -> float:
+  bits = [random_bit() for _ in range(32)]
+  val, unit = 0.0, 1
+  for b in bits:
+    unit /= 2
+    val += b * unit
+  return val
+
+
+def _prepare_dice(n:int) -> CircuitPack:
+  if n in dices: return dices[n]
+
+  cache_fp = CACHE_PATH / f'dice-{n}.json'
+  if not cache_fp.exists():
+    w = np.ones(n) / n    # uniform
+    pack = make_random(w, retry=10, thresh=0.05)
+    save_circuit(pack, cache_fp)
+  dices[n] = load_circuit(cache_fp)
+  return dices[n]
+
 
 def make_random(weight:Weight, retry:int=5, thresh:float=0.1) -> CircuitPack:
   while retry > 0:
@@ -30,6 +65,9 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
   QREG = f'qbit q[{nq}];'
   QMES = f'M(q[0:{nq}]);'
   QCIR = []
+
+  rand  = lambda  : np.random.random ()     # classical random float
+  randn = lambda n: np.random.randint(n)    # classical random int
 
   n_params = 0
   for repeat in range(nq):

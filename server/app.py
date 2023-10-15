@@ -2,6 +2,9 @@
 # Author: Armit
 # Create Time: 2023/10/10
 
+from modules.utils import seed_everything, SEED
+seed_everything(SEED)
+
 from flask import Flask, request, Response
 from flask import redirect, jsonify
 

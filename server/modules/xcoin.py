@@ -51,9 +51,11 @@ def make_basis(x:bas) -> Circuit:
 
 
 if __name__ == '__main__':
-  b, x = randb(), randb()
+  from xrand import random_bit
+
+  b, x = random_bit(), random_bit()
   print(f'Alice: b = {b}, x = {x}')
-  b_ = randb()
+  b_ = random_bit()
   print(f'Bob: b = {b_}')
 
   r = toss_coin((b, x), b_)

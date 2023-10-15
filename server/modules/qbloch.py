@@ -5,21 +5,21 @@
 # utils converting GUI repr to isQ repr
 
 from qlocal import Prob
+from xrand import random_float
 from utils import *
 
 Loc = Tuple[float, float]
 Phi = Tuple[complex, complex]
 
-randpi = lambda: rand() * pi              # random [0, pi)
-randnpi = lambda: (rand() * 2 - 1) * pi   # random [-pi, pi)
-
 
 def rand_loc() -> Loc:
   ''' (θ, φ); θ in [0, pi], φ in [0, 2*pi] '''
+  randpi = lambda: random_float() * pi   # random [0, pi)
   return randpi(), randpi() * 2
 
 def rand_phi() -> Phi:
   ''' |phi> = (p+qi)|0> + (r+si)|1> '''
+  randnpi = lambda: (random_float() * 2 - 1) * pi   # random [-pi, pi)
   p, q, r, s = randnpi(), randnpi(), randnpi(), randnpi()
   amp = np.asarray([complex(p, q), complex(r, s)], dtype=np.complex64)
   amp /= np.linalg.norm(amp)    # unit vector

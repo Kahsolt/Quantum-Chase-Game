@@ -5,6 +5,7 @@
 import os
 import psutil
 import random
+from pathlib import Path
 from traceback import format_exc, print_exc
 from typing import *
 
@@ -15,11 +16,11 @@ try:
 except ImportError:
   ArrayBox = object
 
-pi = np.pi
-rand = lambda: np.random.random()         # random float
-randn = lambda n: np.random.randint(n)    # random int
-randb = lambda: randn(2)                  # random bit
+BASE_PATH = Path(__file__).parent.parent.absolute()
 
+pi = np.pi
+
+SEED = 42
 SHOTS = 1000
 
 

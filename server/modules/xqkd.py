@@ -47,12 +47,14 @@ def make_basis(x:bas) -> Circuit:
 
 
 if __name__ == '__main__':
+  from xrand import random_bit
+
   nlen = 72
   bits_str = lambda x: ''.join([str(e) for e in x])
 
-  xs  = [randb() for _ in range(nlen)]
-  bs  = [randb() for _ in range(nlen)]
-  xs_ = [randb() for _ in range(nlen)]
+  xs  = [random_bit() for _ in range(nlen)]
+  bs  = [random_bit() for _ in range(nlen)]
+  xs_ = [random_bit() for _ in range(nlen)]
   key = gen_key((bs, xs), xs_)
 
   print('bs:',  bits_str(bs))

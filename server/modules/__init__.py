@@ -5,7 +5,7 @@ from qcircuit import *
 from qbloch import *
 
 # app
-from xrand import make_random, verify_random
+from xrand import random_bit, random_int, random_float, make_random, verify_random
 from xcoin import toss_coin
 from xqkd import gen_key
 from xtele import teleport
