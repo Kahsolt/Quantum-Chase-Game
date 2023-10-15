@@ -9,7 +9,7 @@ from xrand import random_bit, random_int, random_float, make_random, verify_rand
 from xcoin import toss_coin
 from xqkd import gen_key
 from xtele import teleport
-from xvqe import gen_ham, convert_circuit, npy_solver, vqe_solver, calc_error
+from xvqe import rand_ham, npy_solver, vqe_solver, calc_error
 
 # utils
 from utils import *
