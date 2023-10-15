@@ -19,6 +19,7 @@ python modules\qbloch.py
 
 python modules\xrand.py
 python modules\xcoin.py
+python modules\xqkd.py
 python modules\xtele.py
 python modules\xvqe.py
 
