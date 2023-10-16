@@ -1,4 +1,5 @@
 isqopen
 flask
+flask-socketio
 requests
 psutil

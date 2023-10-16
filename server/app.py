@@ -2,50 +2,75 @@
 # Author: Armit
 # Create Time: 2023/10/10
 
-from modules.utils import seed_everything, SEED
-seed_everything(SEED)
-
-from flask import Flask, request, Response
-from flask import redirect, jsonify
+from flask import Flask
+from flask_socketio import SocketIO, send, emit
+from flask_socketio import join_room, leave_room
 
 from modules import *
+from services import *
 
-BASE_PATH = Path(__file__).parent.absolute()
-PORT = os.environ.get('PORT', 5000)
+seed_everything(SEED)
 
-app = Flask(__name__)
-
-
-@app.route('/')
-def index():
-  apis = [k[len('api_'):] for k, v in globals().items() if k.startswith('api_') and isinstance(v, Callable)]
-  return jsonify(apis)
+app = Flask(__name__, template_folder=HTML_PATH, static_folder=HTML_PATH, static_url_path='/static')
+app.register_blueprint(doc)
+socketio = SocketIO(app, logger=True)
 
 
-@app.route('/init')
-def api_init():
-  pass
+@socketio.on('connect')
+def on_connect(auth):
+  emit('connect', {'data': 'client connected'})
+
+@socketio.on('disconnect')
+def on_disconnect():
+  print('client disconnected')
+
+@socketio.on_error()
+def on_error(e):
+  print(e)
+
+@socketio.on_error_default
+def on_error_default(e):
+  print(e)
+
+@socketio.on('message')
+def on_message(data):
+  print('received message: ' + data)
+  send(data)
+
+@socketio.on('json')
+def on_json(json):
+  print('received json: ' + str(json))
+  send(json, json=True)
+
+@socketio.on('join')
+def on_join(data):
+  username = data['username']
+  room = data['room']
+  join_room(room)
+  send(username + ' has entered the room.', to=room)
+
+@socketio.on('leave')
+def on_leave(data):
+  username = data['username']
+  room = data['room']
+  leave_room(room)
+  send(username + ' has left the room.', to=room)
+
+@socketio.on('my event')
+def on_my_event(json):
+  emit('my response', json)
 
 
-@app.route('/info')
-def api_info():
-  loadavg, (rss, vms, mem_usage) = mem_info()
+def my_function_handler(data):
+  ret = {'data': sum(data['data'])}
+  emit('my response', ret)
 
-  return f'''
-<div>
-  <p>pwd: {os.getcwd()}</p>
-  <p>BASE_PATH: {BASE_PATH}</p>
-  <p>loadavg: {loadavg}</p>
-  <p>mem use: {rss:.3f} MB</p>
-  <p>mem vms: {vms:.3f} MB</p>
-  <p>mem percent: {mem_usage} %</p>
-</div>
-'''
+socketio.on_event('my function', my_function_handler)
 
 
 if __name__ == '__main__':
   try:
-    app.run(host='0.0.0.0', port=PORT, threaded=True, debug=True)
+    socketio.run(app, host='0.0.0.0', port=PORT, debug=True)
   except KeyboardInterrupt:
     print('Exit by Ctrl+C')
   except:
