@@ -7,8 +7,8 @@
 import requests as R
 from requests import Response
 
-from qlocal import Freq, cntr2freq
-from utils import SHOTS, timer
+from modules.qlocal import Freq, cntr2freq
+from modules.utils import SHOTS, timer
 
 API_BASE = 'http://127.0.0.1:5001'
 

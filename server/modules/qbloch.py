@@ -4,9 +4,9 @@
 
 # utils converting GUI repr to isQ repr
 
-from qlocal import Prob
-from xrand import random_float
-from utils import *
+from modules.qlocal import Prob
+from modules.xrand import random_float
+from modules.utils import *
 
 Loc = Tuple[float, float]
 Phi = Tuple[complex, complex]

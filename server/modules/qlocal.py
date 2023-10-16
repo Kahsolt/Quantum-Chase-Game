@@ -9,7 +9,7 @@ from pathlib import Path
 from re import compile as Regex
 from isq import LocalDevice, optv, optimizer
 
-from utils import *
+from modules.utils import *
 
 CACHE_PATH = BASE_PATH / '.cache' ; CACHE_PATH.mkdir(exist_ok=True)
 

@@ -4,9 +4,9 @@
 
 # implement the quantum teleportation: sends an arbitary quantum state through pre-distributed EPR-pair and classical communication between
 
-from qcloud import *
-from qlocal import *
-from qbloch import *
+from modules.qcloud import *
+from modules.qlocal import *
+from modules.qbloch import *
 
 
 @timer

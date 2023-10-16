@@ -6,8 +6,8 @@
 
 from functools import reduce
 
-from xrand import random_float, random_int
-from utils import *
+from modules.xrand import random_float, random_int
+from modules.utils import *
 
 PauliTerm = Tuple[float, str]
 PauliMat = ndarray

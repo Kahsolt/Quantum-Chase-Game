@@ -4,7 +4,7 @@
 
 # utils converting GUI repr to isQ repr
 
-from qlocal import *
+from modules.qlocal import *
 
 # gate, param, qubits
 # e.g.:

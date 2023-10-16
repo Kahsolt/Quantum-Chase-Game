@@ -13,6 +13,8 @@ ECHO.
 
 ECHO ^>^> [Step 2/3] test local isq-open service...
 
+SET PYTHONPATH=%CD%
+
 python modules\qlocal.py
 python modules\qcircuit.py
 python modules\qbloch.py

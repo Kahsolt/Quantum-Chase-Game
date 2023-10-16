@@ -6,9 +6,9 @@
 
 from functools import partial
 
-from qcloud import *
-from qlocal import *
-from qpauli import *
+from modules.qcloud import *
+from modules.qlocal import *
+from modules.qpauli import *
 
 EigenVal = float
 EigenVec = ndarray

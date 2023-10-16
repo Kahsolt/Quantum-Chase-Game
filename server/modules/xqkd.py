@@ -4,7 +4,7 @@
 
 # implement the quantum key distribution, based on BB84 protocol
 
-from qlocal import *
+from modules.qlocal import *
 
 
 def gen_key(alice:Tuple[List[bit], List[bas]], bob:List[bas]) -> List[bit]:

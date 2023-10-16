@@ -7,7 +7,7 @@
 import math
 from functools import partial
 
-from qlocal import *
+from modules.qlocal import *
 
 Weight = List[Union[float, int]]
 kl_div = lambda x, y: np.mean(x * (np.log(x + 1e-15) - np.log(y + 1e-15)))

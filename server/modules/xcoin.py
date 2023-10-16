@@ -4,7 +4,7 @@
 
 # implement the quantum coin flipping, based on quantum bit escrow protocol
 
-from qlocal import *
+from modules.qlocal import *
 
 # the constant in paper setting
 THETA = np.pi / 8
