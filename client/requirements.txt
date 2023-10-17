@@ -1,0 +1,4 @@
+pygame
+windows-curses
+python-socketio
+websocket-client    # python-socketio requires this
