@@ -4,29 +4,12 @@
 
 ----
 
+contest page: [https://qcloud.arclightquantum.com/#/competition/introduction](https://qcloud.arclightquantum.com/#/competition/introduction)
+
+
 ### how to run
 
 - see REAME.md in both [server](server/README.md) and [client](cleint/README.md) folder
-
-
-### references
-
-⚪ contest info
-
-- [http://www.arclighttest.cn:8092/#/competition/introduction](http://www.arclighttest.cn:8092/#/competition/introduction)
-- [http://www.chinaqiia.cn/contest/detail/92](http://www.chinaqiia.cn/contest/detail/92)
-
-⚪ isQ devkit
-
-- minimal version (**recommended**)
-  - doc: [https://www.arclightquantum.com/isq-core/](https://www.arclightquantum.com/isq-core/)
-  - repo: [https://gitee.com/arclight_quantum/isq-core](https://gitee.com/arclight_quantum/isq-core)
-- full version
-  - doc: [https://www.arclightquantum.com/isq-docs/latest/](https://www.arclightquantum.com/isq-docs/latest/)
-  - repo: [https://gitee.com/arclight_quantum/isq](https://gitee.com/arclight_quantum/isq)
-- tutorial:
-  - language grammar: [https://www.arclightquantum.com/isq-docs/latest/grammar/](https://www.arclightquantum.com/isq-docs/latest/grammar/)
-  - examples: [https://www.arclightquantum.com/isq-docs/latest/examples/basic/](https://www.arclightquantum.com/isq-docs/latest/examples/basic/)
 
 ----
 by Armit
