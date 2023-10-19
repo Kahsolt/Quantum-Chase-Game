@@ -25,7 +25,7 @@
       <div class="crossnote markdown-preview  ">
       
 <h1 id="playerdata-documentation">Playerdata documentation </h1>
-<p>=&gt; API doc: <a href="..\..\api">/api</a></p>
+<p>=&gt; API doc: <a href="..\api">/api</a></p>
 <hr>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-interface">interface</span> <span class="token class-name">Game</span> <span class="token punctuation">{</span>
   me<span class="token operator">:</span> <span class="token builtin">string</span>
@@ -35,16 +35,17 @@
 <span class="token punctuation">}</span>
 
 <span class="token keyword keyword-interface">interface</span> <span class="token class-name">Player</span> <span class="token punctuation">{</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>float<span class="token punctuation">,</span> float<span class="token punctuation">]</span>     <span class="token comment">// 球面位置坐标 (tht, psi)</span>
-  mov<span class="token operator">:</span> <span class="token punctuation">{</span>                  <span class="token comment">// 移动</span>
-    dir<span class="token operator">:</span> float            <span class="token comment">// 方向</span>
-    spd<span class="token operator">:</span> float            <span class="token comment">// 速度</span>
-  <span class="token punctuation">}</span>
+  <span class="token comment">// 移动弧度方向 dir</span>
+  dir<span class="token operator">:</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
+  <span class="token comment">// 移动秒角速度 spd</span>
+  spd<span class="token operator">:</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
+  <span class="token comment">// bloch球面位置 (tht, psi)</span>
+  loc<span class="token operator">:</span> <span class="token punctuation">[</span>float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">]</span>
   bag<span class="token operator">:</span> <span class="token punctuation">{</span>                  <span class="token comment">// 背包</span>
     photon<span class="token operator">:</span> int           <span class="token comment">// 光子 (代币)</span>
     gate<span class="token operator">:</span> <span class="token punctuation">{</span>               <span class="token comment">// 量子门 (道具)</span>
       <span class="token punctuation">[</span>name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> int
-    <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 

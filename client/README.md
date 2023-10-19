@@ -26,6 +26,8 @@
   - tutorial: [https://docs.python.org/zh-cn/3.12/howto/curses.html](https://docs.python.org/zh-cn/3.12/howto/curses.html)
   - API doc: [https://docs.python.org/zh-cn/3.12/library/curses.html#module-curses](https://docs.python.org/zh-cn/3.12/library/curses.html#module-curses)
   - example: [https://zhuanlan.zhihu.com/p/429989849](https://zhuanlan.zhihu.com/p/429989849)
+- keyboard: [https://github.com/boppreh/keyboard](https://github.com/boppreh/keyboard)
+- pywin32: [https://mhammond.github.io/pywin32/](https://mhammond.github.io/pywin32/)
 
 ----
 by Armit

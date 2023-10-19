@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head>
-      <title>api</title>
+      <title>movloc</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
@@ -24,13 +24,28 @@
     
       <div class="crossnote markdown-preview  ">
       
-<h1 id="api-documentation">API documentation </h1>
-<p>=&gt; playerdata doc: <a href="..\doc">/doc</a></p>
-<h3 id="general">General </h3>
-<p>Serving game logic through <strong>Websocket</strong> protocol<br>
-The payload for both requests and responses are in <strong>JSON</strong> format<br>
-All event names (alike HTTP routes) are RESTful-like designed</p>
-<p>The common JSON fields for all packets:</p>
+<h3 id="movchange-移动开始改变">mov:change 移动开始/改变 </h3>
+<p>玩家按下/半释放方向键，进行房间广播</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request / response</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token builtin">string</span>
+  dir<span class="token operator">:</span> int
+  spd<span class="token operator">?</span><span class="token operator">:</span> float
+<span class="token punctuation">}</span>
+</code></pre><h3 id="movstop-停止移动">mov:stop 停止移动 </h3>
+<p>玩家完全释放方向键，进行房间广播</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token builtin">string</span>
+<span class="token punctuation">}</span>
+
+<span class="token comment">// response</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  id<span class="token operator">:</span> <span class="token builtin">string</span>
+  loc<span class="token operator">:</span> <span class="token punctuation">[</span>float<span class="token punctuation">,</span> float<span class="token punctuation">]</span>   <span class="token comment">// 服务端计算的玩家位置</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="locsync-同步位置">loc:sync 同步位置 </h3>
+<p>获取服务端计算的当前位置 (并强制更新)</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
 
@@ -38,25 +53,9 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  ok<span class="token operator">:</span> bool            <span class="token comment">// success status</span>
-  data<span class="token operator">?</span><span class="token operator">:</span> list<span class="token operator">|</span>dict    <span class="token comment">// data payload</span>
-  error<span class="token operator">?</span><span class="token operator">:</span> str         <span class="token comment">// error message</span>
-  ts<span class="token operator">:</span> timestamp       <span class="token comment">// server current time</span>
+  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>float<span class="token punctuation">,</span> float<span class="token punctuation">]</span>    <span class="token comment">// 服务端计算的各玩家的位置</span>
 <span class="token punctuation">}</span>
-</code></pre><hr>
-<h3 id="apis">APIs </h3>
-<ul>
-{% for page in pages %}
-  <li><a href="..\api\{{page}}"> {{page}} </a></li>
-{% endfor %}
-</ul>
-<hr>
-<h3 id="debug">Debug </h3>
-<p>=&gt; websocket test page: <a href="..\ws">/ws</a><br>
-=&gt; runtime info: <a href="..\info">/info</a></p>
-<hr>
-<p> by Armit <time> 2023/10/16 </time> </p>
-
+</code></pre>
       </div>
       
       

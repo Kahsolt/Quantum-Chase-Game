@@ -1,0 +1,8 @@
+# meta
+.vscode/
+__pycache__/
+
+# generated
+build/
+dist/
+*.spec

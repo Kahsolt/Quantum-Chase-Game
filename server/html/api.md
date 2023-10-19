@@ -8,7 +8,7 @@ Serving game logic through **Websocket** protocol
 The payload for both requests and responses are in **JSON** format  
 All event names (alike HTTP routes) are RESTful-like designed  
 
-The common JSON fields for all payloads:
+The common JSON fields for all packets:
 
 ```typescript
 // request
@@ -19,9 +19,9 @@ interface {
 // response
 interface {
   ok: bool            // success status
-  ts: timestamp       // server current time
-  error?: str         // error message
   data?: list|dict    // data payload
+  error?: str         // error message
+  ts: timestamp       // server current time
 }
 ```
 
@@ -31,7 +31,7 @@ interface {
 
 <ul>
 {% for page in pages %}
-  <li><a href="/api/{{page}}"> /api/{{page}} </a></li>
+  <li><a href="/api/{{page}}"> {{page}} </a></li>
 {% endfor %}
 </ul>
 

@@ -30,7 +30,7 @@
   - doc: [https://www.arclightquantum.com/isq-docs/latest/](https://www.arclightquantum.com/isq-docs/latest/)
   - language grammar: [https://www.arclightquantum.com/isq-docs/latest/grammar/](https://www.arclightquantum.com/isq-docs/latest/grammar/)
   - examples: [https://www.arclightquantum.com/isq-docs/latest/examples/basic/](https://www.arclightquantum.com/isq-docs/latest/examples/basic/)
-
+- flask-socketio: [https://flask-socketio.readthedocs.io/en/latest/](https://flask-socketio.readthedocs.io/en/latest/)
 
 ----
 by Armit

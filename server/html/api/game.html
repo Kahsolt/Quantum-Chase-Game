@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head>
-      <title>test</title>
+      <title>game</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
@@ -24,15 +24,30 @@
     
       <div class="crossnote markdown-preview  ">
       
-<h3 id="testwhat-测试服务测试指令">/test/what 测试服务测试指令 </h3>
+<h3 id="gamejoin-加入游戏">game:join 加入游戏 </h3>
+<p>点击开始游戏后，等待双方确认</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
+  rid<span class="token operator">:</span> int    <span class="token comment">// 房间号</span>
+  r<span class="token operator">:</span> int      <span class="token comment">// 选择比特值用以初始化</span>
 <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  val<span class="token operator">:</span> float
+
+<span class="token punctuation">}</span>
+</code></pre><h3 id="gamestart-游戏开始">game:start 游戏开始 </h3>
+<p>待双方确认后，初始化游戏状态</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  <span class="token comment">// Game 结构</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="gamesettle-游戏结束">game:settle 游戏结束 </h3>
+<p>服务器模拟达到触发条件后，主动通知客户端结束游戏</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  winner<span class="token operator">:</span> <span class="token builtin">string</span>
+  endTs<span class="token operator">:</span> int
 <span class="token punctuation">}</span>
 </code></pre>
       </div>

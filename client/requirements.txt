@@ -1,4 +1,6 @@
 pygame
 windows-curses
+keyboard
 python-socketio
 websocket-client    # python-socketio requires this
+dataclass_wizard

@@ -23,9 +23,9 @@ def rand_phi() -> Phi:
   p, q, r, s = randnpi(), randnpi(), randnpi(), randnpi()
   amp = np.asarray([complex(p, q), complex(r, s)], dtype=np.complex64)
   amp /= np.linalg.norm(amp)    # unit vector
-  return emit_gphase(amp.tolist())
+  return eliminate_gphase(amp.tolist())
 
-def emit_gphase(phi:Phi) -> Phi:
+def eliminate_gphase(phi:Phi) -> Phi:
   '''
     Euler's formula: e^ix = cos(x) + i * sin(x)
     for arbitary |phi> = a|0> + b|1>, multiply by the unit vector `a.conj / |a|` will 
@@ -55,7 +55,7 @@ def loc2phi(loc:Loc) -> Phi:
 
 def phi2loc(phi:Phi) -> Loc:
   ''' |phi> = a|0> + b|1> => (tht, phi)'''
-  a, b = emit_gphase(phi)
+  a, b = eliminate_gphase(phi)
   tht = 2 * np.arccos(a)
   tht = clock_angle(tht)
   psi = np.log(b / np.sin(tht / 2) + 1e-15).imag

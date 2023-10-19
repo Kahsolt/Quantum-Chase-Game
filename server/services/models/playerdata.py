@@ -6,11 +6,9 @@ from dataclasses import dataclass, field
 from dataclass_wizard import JSONWizard
 from typing import *
 
-
-@dataclass
-class Move:
-  dir: float = 0.0
-  spd: float = 0.0
+float_opt = Optional[float]
+str_opt = Optional[str]
+Role = str
 
 
 @dataclass
@@ -21,15 +19,16 @@ class Bag:
 
 @dataclass
 class Player:
-  loc: Optional[Tuple[float, float]] = None
-  mov: Move = Move()
-  bag: Bag = Bag()
+  dir: float_opt = None
+  spd: float = 0.0
+  loc: List[float_opt] = field(default_factory=lambda: [None, None])
+  bag: Optional[Bag] = Bag()
 
 
 @dataclass
 class Status:
   stage: int = 0
-  winner: Optional[str] = None
+  winner: str_opt = None
   startTs: int = -1
   endTs: int = -1
 
@@ -42,7 +41,13 @@ class Const:
 
 @dataclass
 class Game(JSONWizard):
-  me: Optional[str] = None
-  players: Dict[str, Player] = field(default_factory=dict)
+  me: Union[str_opt, Dict[str, str]]
+  players: Dict[Role, Player] = field(default_factory=dict)
   status: Status = Status()
   const: Const = Const()
+
+
+if __name__ == '__main__':
+  me = 'Alice'
+  g = Game(me=me, players={me: Player()})
+  print(g)

@@ -25,6 +25,8 @@ python modules\xqkd.py
 python modules\xtele.py
 python modules\xvqe.py
 
+python services\models\playerdata.py
+
 ECHO.
 ECHO.
 
@@ -34,3 +36,6 @@ CALL isq-run\start.cmd
 IF ERRORLEVEL 1 GOTO ERROR
 
 python modules\qcloud.py
+
+
+:ERROR
