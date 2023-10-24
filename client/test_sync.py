@@ -24,7 +24,7 @@ KeyCode = str
 Packet = Dict[str, Any]
 Data = Dict[str, Any]
 
-FPS = 10
+FPS = 30
 MAX_LEN = 36
 INDENT = 2
 
@@ -117,9 +117,9 @@ def game_settle(data:Data):
   endTs = data['endTs']
   ui_show_info(f'>> winner: {winner}, endTs: {endTs}')
 
-@sio.on('mov:change')
+@sio.on('mov:start')
 @unpack_data
-def mov_change(data:Data):
+def mov_start(data:Data):
   id = data['id']
   player = game.players[id]
   player.dir = data['dir']
@@ -134,7 +134,7 @@ def mov_stop(data:Data):
   player = game.players[id]
   player.dir = None
   loc = data['loc']
-  #player.dir = [(x + y) / 2 for x, y in zip(loc, player.dir)]
+  player.loc = [(x + y) / 2 for x, y in zip(loc, player.loc)]
   if id in moving: moving.remove(id)
 
 @sio.on('loc:sync')
@@ -174,15 +174,13 @@ def handle_input_wasd(evt:KeyboardEvent):
   if MOVE_D in keyholds: vert -= 1
 
   new_dir = DIR_MAPPING[(horz, vert)]
+  old_dir = game.players[game.me].dir
+  if all([new_dir, old_dir]) and abs(new_dir - old_dir) < 1e-5: return
+
   if new_dir is None:
-    sio.emit('mov:stop', {
-      'id': game.me,
-    })
+    sio.emit('mov:stop', {})
   else:
-    sio.emit('mov:change', {
-      'id': game.me,
-      'dir': new_dir,
-    })
+    sio.emit('mov:start', {'dir': new_dir})
 
 @dead_loop
 def handle_input(is_quit:Event):

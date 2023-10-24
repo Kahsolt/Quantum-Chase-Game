@@ -2,18 +2,19 @@
 # Author: Armit
 # Create Time: 2023/10/19
 
+from services.item import *
 from services.utils import *
-from modules.qbloch import Loc
+from modules.qbloch import Loc, loc2phi
+from modules.xtele import teleport
 
 
-def handle_mov_change(payload:Payload, g:Game) -> HandlerRet:
-  try: check_payload(payload, [('id', str), ('dir', float)])
+def handle_mov_start(payload:Payload, g:Game) -> HandlerRet:
+  try:
+    check_payload(payload, [('dir', float)])
+    assert 0 <= payload['dir'] <= pi2
   except Exception as e: return resp_error(e.args[0])
 
-  _id: str = payload['id']
-  id = g.me[request.sid]
-  if _id != id: return resp_error(f'{_id} != {id}, who you are?')
-  player = g.players[id]
+  id, player = get_me(g)
 
   _dir: float = payload['dir']
   _spd: float = payload.get('spd')
@@ -22,22 +23,35 @@ def handle_mov_change(payload:Payload, g:Game) -> HandlerRet:
   if _spd is not None:
     player.spd = _spd
 
+  payload['id'] = id
   return resp_ok(payload), Recp.ROOM
 
 
 def handle_mov_stop(payload:Payload, g:Game) -> HandlerRet:
-  try: check_payload(payload, [('id', str)])
-  except Exception as e: return resp_error(e.args[0])
-
-  _id: str = payload['id']
-  id = g.me[request.sid]
-  if _id != id: return resp_error(f'{_id} != {id}, who you are?')
-  player = g.players[id]
+  id, player = get_me(g)
 
   player.dir = None
-  payload['loc'] = player.loc
 
+  payload['id'] = id
+  payload['loc'] = player.loc
   return resp_ok(payload), Recp.ROOM
+
+
+def handle_loc_query(payload:Payload, g:Game) -> HandlerRet:
+  try:
+    check_payload(payload, [('photon', int)])
+    assert payload['photon'] > 0
+  except Exception as e: return resp_error(e.args[0])
+
+  id, player = get_me(g)
+
+  try: item_cost(player, ItemType.PHOTON, ItemId.PHOTON, payload['photon'])
+  except Exception as e: return resp_error(e.args[0])
+
+  loc = g.players[ALICE if id == BOB else BOB].loc
+  freq = teleport(loc2phi(loc))
+
+  return resp_ok({'freq': freq}), Recp.ONE
 
 
 def handle_loc_sync(payload:Payload, g:Game) -> HandlerRet:
@@ -49,10 +63,6 @@ def handle_loc_sync(payload:Payload, g:Game) -> HandlerRet:
 
 
 ''' utils '''
-
-pi2 = pi * 2
-pi_2 = pi / 2
-pi_256 = pi / 256
 
 def task_sim_loc(game:Game):
   if game is None: return

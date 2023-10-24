@@ -24,19 +24,25 @@
     
       <div class="crossnote markdown-preview  ">
       
-<h3 id="movchange-移动开始改变">mov:change 移动开始/改变 </h3>
+<h3 id="movstart-移动开始改变">mov:start 移动开始/改变 </h3>
 <p>玩家按下/半释放方向键，进行房间广播</p>
-<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request / response</span>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  dir<span class="token operator">:</span> int
+  spd<span class="token operator">?</span><span class="token operator">:</span> float
+<span class="token punctuation">}</span>
+
+<span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
   id<span class="token operator">:</span> <span class="token builtin">string</span>
-  dir<span class="token operator">:</span> int
+  dir<span class="token operator">:</span> int      <span class="token comment">// 复制 request</span>
   spd<span class="token operator">?</span><span class="token operator">:</span> float
 <span class="token punctuation">}</span>
 </code></pre><h3 id="movstop-停止移动">mov:stop 停止移动 </h3>
 <p>玩家完全释放方向键，进行房间广播</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
+
 <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
@@ -44,8 +50,19 @@
   id<span class="token operator">:</span> <span class="token builtin">string</span>
   loc<span class="token operator">:</span> <span class="token punctuation">[</span>float<span class="token punctuation">,</span> float<span class="token punctuation">]</span>   <span class="token comment">// 服务端计算的玩家位置</span>
 <span class="token punctuation">}</span>
+</code></pre><h3 id="locquery-查询位置">loc:query 查询位置 </h3>
+<p>消耗光子，测量隐形传态的结果，查询对方玩家</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  photon<span class="token operator">:</span> int
+<span class="token punctuation">}</span>
+
+<span class="token comment">// response</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  freq<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// 测量结果频度分布列</span>
+<span class="token punctuation">}</span>
 </code></pre><h3 id="locsync-同步位置">loc:sync 同步位置 </h3>
-<p>获取服务端计算的当前位置 (并强制更新)</p>
+<p>获取服务端计算的各玩家当前位置 (位置公布以后，或误差修正用)</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
 

@@ -48,6 +48,12 @@ def handle_game_join(payload:Payload, env:Env) -> HandlerRet:
   return resp_ok(), Recp.ONE
 
 
+def handle_game_sync(payload:Payload, g:Game) -> HandlerRet:
+  id, player = get_me(g)
+
+  return resp_ok(player), Recp.ONE
+
+
 def emit_game_start(env:Env, rid:str):
   if rid not in env.waits: return
   if rid in env.games: return

@@ -15,6 +15,20 @@ interface {
 }
 ```
 
+### game:sync 同步 player 部分的数据
+
+```typescript
+// request
+interface {
+
+}
+
+// response
+interface {
+  // Player 结构
+}
+```
+
 ### game:start 游戏开始
 
 待双方确认后，初始化游戏状态

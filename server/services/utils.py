@@ -28,6 +28,11 @@ PORT = os.environ.get('PORT', 5000)
 FPS = 30
 SEED = 42
 
+pi2 = pi * 2
+pi_2 = pi / 2
+pi_256 = pi / 256
+
+
 '''
 {
   // some stuff
@@ -61,10 +66,7 @@ class Env:
   # rid => Event, is_stop movloc simulating
   signals: Dict[str, Event] = field(default_factory=dict)
 
-HandlerRet = Union[
-  Tuple[Resp, Recp],      # sucess
-  Resp,                   # error
-]
+HandlerRet = Union[Tuple[Resp, Recp], Resp]
 Handler = Callable[[Payload, Union[Env, Game]], HandlerRet]
 
 PREFIX_HANDLER = 'handle_'
@@ -97,7 +99,6 @@ def mem_info() -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
 
   return loadavg, (rss, vms, mem_usage)
 
-
 def run_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple=()):
   @dead_loop
   def wrapped_task():
@@ -126,6 +127,9 @@ def resp_error(err:str) -> Resp:
     'ts': now_ts(),
   }
 
+def get_me(g:Game) -> Tuple[int, Player]:
+  id = g.me[request.sid]
+  return id, g.players[id]
 
 def check_payload(payload:Payload, keys:List[Union[str, Tuple[str, type]]]):
   keys_missing: List[str] = []

@@ -1,12 +1,18 @@
-### mov:change 移动开始/改变
+### mov:start 移动开始/改变
 
 玩家按下/半释放方向键，进行房间广播
 
 ```typescript
-// request / response
+// request
+interface {
+  dir: int
+  spd?: float
+}
+
+// response
 interface {
   id: string
-  dir: int
+  dir: int      // 复制 request
   spd?: float
 }
 ```
@@ -18,7 +24,7 @@ interface {
 ```typescript
 // request 
 interface {
-  id: string
+
 }
 
 // response
@@ -28,9 +34,26 @@ interface {
 }
 ```
 
+### loc:query 查询位置
+
+消耗光子，测量隐形传态的结果，查询对方玩家
+
+```typescript
+// request
+interface {
+  photon: int
+}
+
+// response
+interface {
+  freq: [int, int]    // 测量结果频度分布列
+}
+```
+
+
 ### loc:sync 同步位置
 
-获取服务端计算的当前位置 (并强制更新)
+获取服务端计算的各玩家当前位置 (位置公布以后，误差修正用)
 
 ```typescript
 // request
