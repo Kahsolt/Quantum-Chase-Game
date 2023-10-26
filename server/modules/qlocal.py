@@ -64,7 +64,7 @@ def train_circuit(pack:CircuitPack, loss_fn:Callable[[Params], float], steps:int
     params, loss = opt.opt(loss_fn, params)
     if loss < eps: break
     if log and i % 100 == 0: print(f'[step {i}] loss: {loss}, lr: {opt._lr}')
-    if i > 0 and i % 1000 == 0: opt._lr /= 2
+    if i > 0 and i % 1000 == 0: opt._lr *= 0.99
   return circuit, params
 
 

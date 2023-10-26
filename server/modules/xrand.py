@@ -21,8 +21,6 @@ def random_bit() -> bit:
 
 
 def random_int(n:int) -> int:
-  assert n >= 2, 'n should >=2'
-
   pack = _prepare_dice(n)
   return shot_circuit(pack)
 
@@ -37,12 +35,23 @@ def random_float() -> float:
 
 
 def _prepare_dice(n:int) -> CircuitPack:
+  assert n >= 2, 'n should >=2'
   if n in dices: return dices[n]
 
+  print('>> _prepare_dice:', n)
   cache_fp = CACHE_PATH / f'dice-{n}.json'
   if not cache_fp.exists():
-    w = np.ones(n) / n    # uniform
-    pack = make_random(w, retry=10, thresh=0.05)
+    if n & (n - 1) == 0:    # power of 2, use H only
+      nq = int(np.log2(n))
+      circuit = '\n'.join([
+        f'qbit q[{nq}];'
+        *[f'H({i});' for i in range(nq)],
+        f'M(q[0:{nq}]);'
+      ])
+      pack = circuit, []
+    else:
+      w = np.ones(n) / n    # uniform
+      pack = make_random(w, retry=10, thresh=0.05)
     save_circuit(pack, cache_fp)
   dices[n] = load_circuit(cache_fp)
   return dices[n]
@@ -73,7 +82,7 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
   for repeat in range(nq):
     # rot
     for i in range(nq):
-      if rand() < 0.75:
+      if rand() < 0.5:
         QCIR.append(f'RX({VARGS}[{n_params}], q[{i}]);')
         n_params += 1
       if rand() < 0.75:
@@ -83,13 +92,13 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
     # entgl
     if repeat == nq - 1: continue
     for i in range(nq - 1):   # linear
-      if rand() < 0.75:
+    #  if rand() < 0.75:
         QCIR.append(f'CNOT(q[{i}], q[{i+1}]);')
-    for i in range(nq):       # rand
-      if rand() < 0.75:
-        x, y = randn(nq), randn(nq)
-        if x == y: continue
-        QCIR.append(f'CNOT(q[{x}], q[{y}]);')
+    #for i in range(nq):       # rand
+    #  if rand() < 0.75:
+    #    x, y = randn(nq), randn(nq)
+    #    if x == y: continue
+    #    QCIR.append(f'CNOT(q[{x}], q[{y}]);')
 
   circuit = '\n'.join([QREG] + QCIR + [QMES])
 
@@ -101,7 +110,7 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
 
 
 @timer
-def train_random(weight:Weight, steps:int=5000, lr:float=0.07) -> CircuitPack:
+def train_random(weight:Weight, steps:int=5000, lr:float=0.1) -> CircuitPack:
   target = _weight2prob(weight)
   nq = int(math.log2(len(target)))
 
