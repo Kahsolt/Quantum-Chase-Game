@@ -23,6 +23,7 @@ def run_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple
     print(f'>> task {func.__name__} started')
     while not is_quit.is_set():
       sleep(interval)
+      if is_quit.is_set(): break
       Thread(target=func, args=func_args, daemon=True).start()
     print(f'>> task {func.__name__} stopped')
 
@@ -37,6 +38,7 @@ def run_randn_sched_task(is_quit:Event, expect:float, func:Callable, func_args:t
     while not is_quit.is_set():
       interval = random_gaussian_expect(expect, vmin=3) 
       sleep(interval)
+      if is_quit.is_set(): break
       Thread(target=func, args=func_args, daemon=True).start()
     print(f'>> task {func.__name__} stopped')
 
@@ -51,6 +53,7 @@ def run_randu_sched_task(is_quit:Event, vrng:Tuple[float, float], func:Callable,
     while not is_quit.is_set():
       interval = random_uniform_expect(*vrng) 
       sleep(interval)
+      if is_quit.is_set(): break
       Thread(target=func, args=func_args, daemon=True).start()
     print(f'>> task {func.__name__} stopped')
 

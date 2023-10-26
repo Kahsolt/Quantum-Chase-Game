@@ -22,7 +22,10 @@ def random_bit() -> bit:
 
 def random_int(n:int) -> int:
   pack = _prepare_dice(n)
-  return shot_circuit(pack)
+  r = n + 1
+  while r > n:
+    r = shot_circuit(pack)
+  return r
 
 
 def random_float() -> float:
