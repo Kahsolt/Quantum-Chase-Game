@@ -2,16 +2,16 @@
 # Author: Armit
 # Create Time: 2023/10/19
 
-from services.item import *
-from services.utils import *
-from modules.qbloch import Loc, loc2phi
-from modules.xtele import teleport
+from modules.xtele import teleport, Loc, loc2phi
+from services.packets import *
+
+from .item import *
 
 
 def handle_mov_start(payload:Payload, g:Game) -> HandlerRet:
   try:
     check_payload(payload, [('dir', int)])
-    assert 0 <= payload['dir'] <= pi2
+    assert 0 <= payload['dir'] <= 7
   except Exception as e: return resp_error(e.args[0])
 
   id, player = get_me(g)
@@ -64,7 +64,7 @@ def handle_loc_sync(payload:Payload, g:Game) -> HandlerRet:
 
 ''' utils '''
 
-def task_sim_loc(game:Game):
+def task_loc_sim(game:Game):
   if game is None: return
   for id, player in game.players.items():
     dir = player.dir

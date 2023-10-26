@@ -4,6 +4,8 @@
 
 ----
 
+⚪ Playerdata
+
 ```typescript
 interface Game {
   me: string
@@ -37,6 +39,23 @@ interface Status {
 interface Const {
   cost: Record<string, int>   // 消耗量子门需要花费光子
   noise: float                // 量子计算噪声
+}
+```
+
+⚪ Item
+
+```typescript
+interface Item {
+  type: ItemType
+  id: ItemId
+  count: int
+}
+
+interface SpawnItem {
+  item: Item
+  loc: [float, float] 
+  ttl: int
+  ts: int
 }
 ```
 

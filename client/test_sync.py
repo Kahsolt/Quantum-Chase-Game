@@ -143,6 +143,10 @@ def loc_sync(data:Data):
   for id, loc in data.items():
     game.players[id].loc = loc
 
+@sio.on('item:spawn')
+def item_spawn(data:Data):
+  ui_show_info(str(data))
+
 
 def handle_input_z(evt:KeyboardEvent):
   if evt.event_type == kb.KEY_UP: return

@@ -15,7 +15,7 @@ seed_everything(SEED)
 app = Flask(__name__, template_folder=HTML_PATH, static_folder=HTML_PATH, static_url_path='/static')
 app.register_blueprint(doc)
 sio = SocketIO(app, logger=False, threaded=False)
-env = Env()
+env = Env(sio)
 
 
 @sio.on('connect')
