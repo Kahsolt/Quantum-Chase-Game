@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from dataclass_wizard import JSONWizard
 from typing import *
 
-float_opt = Optional[float]
+int_opt = Optional[int]
 str_opt = Optional[str]
 Role = str
 
@@ -19,9 +19,9 @@ class Bag:
 
 @dataclass
 class Player:
-  dir: float_opt = None
-  spd: float = 0.0
-  loc: List[float_opt] = field(default_factory=lambda: [None, None])
+  dir: int_opt = None
+  spd: int = 0
+  loc: List[int_opt] = field(default_factory=lambda: [None, None])
   bag: Optional[Bag] = Bag()
 
 

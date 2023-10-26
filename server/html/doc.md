@@ -13,12 +13,12 @@ interface Game {
 }
 
 interface Player {
-  // 移动弧度方向 dir
-  dir: float | null
+  // 移动弧度方向 dir (枚举值 0~7)
+  dir: int | null
   // 移动秒角速度 spd
-  spd: float | null
+  spd: int | null
   // bloch球面位置 (tht, psi)
-  loc: [float | null, float | null]
+  loc: [int | null, int | null]
   bag: {                  // 背包
     photon: int           // 光子 (代币)
     gate: {               // 量子门 (道具)

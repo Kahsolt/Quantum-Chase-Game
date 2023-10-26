@@ -2,7 +2,7 @@
 # Author: Armit
 # Create Time: 2023/10/20
 
-from math import pi
+from numpy import pi
 
 # 角色名
 ALICE = 'Alice'

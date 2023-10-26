@@ -35,12 +35,12 @@
 <span class="token punctuation">}</span>
 
 <span class="token keyword keyword-interface">interface</span> <span class="token class-name">Player</span> <span class="token punctuation">{</span>
-  <span class="token comment">// 移动弧度方向 dir</span>
-  dir<span class="token operator">:</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
+  <span class="token comment">// 移动弧度方向 dir (枚举值 0~7)</span>
+  dir<span class="token operator">:</span> int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
   <span class="token comment">// 移动秒角速度 spd</span>
-  spd<span class="token operator">:</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
+  spd<span class="token operator">:</span> int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
   <span class="token comment">// bloch球面位置 (tht, psi)</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span> float <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">]</span>
+  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span> int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">]</span>
   bag<span class="token operator">:</span> <span class="token punctuation">{</span>                  <span class="token comment">// 背包</span>
     photon<span class="token operator">:</span> int           <span class="token comment">// 光子 (代币)</span>
     gate<span class="token operator">:</span> <span class="token punctuation">{</span>               <span class="token comment">// 量子门 (道具)</span>

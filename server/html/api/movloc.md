@@ -6,14 +6,14 @@
 // request
 interface {
   dir: int
-  spd?: float
+  spd?: int
 }
 
 // response
 interface {
   id: string
   dir: int      // 复制 request
-  spd?: float
+  spd?: int
 }
 ```
 
@@ -30,7 +30,7 @@ interface {
 // response
 interface {
   id: string
-  loc: [float, float]   // 服务端计算的玩家位置
+  loc: [int, int]   // 服务端计算的玩家位置
 }
 ```
 
@@ -63,6 +63,6 @@ interface {
 
 // response
 interface {
-  [id: string]: [float, float]    // 服务端计算的各玩家的位置
+  [id: string]: [int, int]    // 服务端计算的各玩家的位置
 }
 ```

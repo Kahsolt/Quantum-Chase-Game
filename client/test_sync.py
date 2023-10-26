@@ -38,14 +38,14 @@ MOVE_R: KeyCode = 'd'
 MOVE_KEYS: List[KeyCode] = [MOVE_U, MOVE_D, MOVE_L, MOVE_R]
 DIR_MAPPING = {
   ( 0,  0): None,
-  (+1,  0): pi/4*0,
-  (+1, +1): pi/4*1,
-  ( 0, +1): pi/4*2,
-  (-1, +1): pi/4*3,
-  (-1,  0): pi/4*4,
-  (-1, -1): pi/4*5,
-  ( 0, -1): pi/4*6,
-  (+1, -1): pi/4*7,
+  (+1,  0): 0,
+  (+1, +1): 1,
+  ( 0, +1): 2,
+  (-1, +1): 3,
+  (-1,  0): 4,
+  (-1, -1): 5,
+  ( 0, -1): 6,
+  (+1, -1): 7,
 }
 
 sio = Client()
@@ -175,7 +175,7 @@ def handle_input_wasd(evt:KeyboardEvent):
 
   new_dir = DIR_MAPPING[(horz, vert)]
   old_dir = game.players[game.me].dir
-  if all([new_dir, old_dir]) and abs(new_dir - old_dir) < 1e-5: return
+  if all([new_dir, old_dir]) and new_dir == old_dir: return
 
   if new_dir is None:
     sio.emit('mov:stop', {})
@@ -234,12 +234,13 @@ def ui_show_info(s:str, lineno:int=6):
 def task_update_ui():
   if geo_fmt is Phi:
     def draw(ch:str, role:str, lineno:int):
-      phi = loc_to_phi(game.players[role].loc)
+      loc = v_i2f(game.players[role].loc)
+      phi = loc_to_phi(loc)
       sfx = f' {rand_char()}' if role in moving else ''
       ui_show_info(f'{ch}: {phi_str(phi)}{sfx}', lineno)
   elif geo_fmt is Loc:
     def draw(ch:str, role:str, lineno:int):
-      loc = game.players[role].loc
+      loc = v_i2f(game.players[role].loc)
       sfx = f' {rand_char()}' if role in moving else ''
       ui_show_info(f'{ch}: {loc_str(loc)}{sfx}', lineno)
   else: raise ValueError

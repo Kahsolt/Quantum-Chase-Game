@@ -74,8 +74,8 @@ def emit_game_start(env:Env, rid:str):
       sid_b: id_b,
     },
     players={
-      ALICE: Player(spd=MOVE_SPEED, loc=rand_loc()),
-      BOB:   Player(spd=MOVE_SPEED, loc=rand_loc()),
+      ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
+      BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
     },
     status=Status(
       startTs=now_ts(),

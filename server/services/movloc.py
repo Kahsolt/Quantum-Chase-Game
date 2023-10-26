@@ -10,14 +10,14 @@ from modules.xtele import teleport
 
 def handle_mov_start(payload:Payload, g:Game) -> HandlerRet:
   try:
-    check_payload(payload, [('dir', float)])
+    check_payload(payload, [('dir', int)])
     assert 0 <= payload['dir'] <= pi2
   except Exception as e: return resp_error(e.args[0])
 
   id, player = get_me(g)
 
-  _dir: float = payload['dir']
-  _spd: float = payload.get('spd')
+  _dir: int = payload['dir']
+  _spd: int = payload.get('spd')
 
   player.dir = _dir
   if _spd is not None:
@@ -69,10 +69,11 @@ def task_sim_loc(game:Game):
   for id, player in game.players.items():
     dir = player.dir
     if dir is None: continue
-    spd = player.spd
-    tht, psi = player.loc
+    dir_f = dir * pi_4             # enum => angle
+    spd = v_i2f(player.spd)        # rescale
+    tht, psi = v_i2f(player.loc)   # rescale
 
-    U, R = np.sin(dir), np.cos(dir)
+    U, R = np.sin(dir_f), np.cos(dir_f)
     # 纬度角速度均匀，值截断 [0, pi]
     tht_n = tht - U * spd / FPS
     if tht_n <  0: tht_n = 0
@@ -82,4 +83,4 @@ def task_sim_loc(game:Game):
     psi_n = psi + (R * spd / FPS) * r
     if psi_n <   0: psi_n += pi2
     if psi_n > pi2: psi_n -= pi2
-    player.loc = [tht_n, psi_n]
+    player.loc = v_f2i([tht_n, psi_n])
