@@ -6,11 +6,11 @@ from typing import *
 
 import numpy as np
 
-# src: server/modules/playerdata.py
+# src: server/services/models/playerdata.py
 from modules.playerdata import *
 
 
-# src: server/modules/staticdata.py
+# src: server/services/models/staticdata.py
 ALICE = 'Alice'
 BOB = 'Bob'
 
@@ -40,9 +40,9 @@ def loc_to_phi(loc:Loc) -> Phi:
 
 
 # src: server/services/movloc.py
-def task_sim_loc(game:Game):
-  if game is None: return
-  for id, player in game.players.items():
+def task_sim_loc(g:Game):
+  if g is None: return
+  for id, player in g.players.items():
     dir = player.dir
     if dir is None: continue
     dir_f = dir * pi_4             # enum => angle

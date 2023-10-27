@@ -28,10 +28,14 @@
 <p>进行房间广播</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  item<span class="token operator">:</span> <span class="token punctuation">{</span>
+    type<span class="token operator">:</span> str
+    id<span class="token operator">:</span> str
+    count<span class="token operator">?</span><span class="token operator">:</span> int
+  <span class="token punctuation">}</span>
   loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>
-  item_type<span class="token operator">:</span> str
-  item_id<span class="token operator">:</span> str
   ttl<span class="token operator">:</span> int        <span class="token comment">// 消失时间</span>
+  ts<span class="token operator">:</span> int         <span class="token comment">// 出生时间</span>
 <span class="token punctuation">}</span>
 </code></pre><h3 id="itempick-玩家捡东西">item:pick 玩家捡东西 </h3>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
@@ -41,8 +45,8 @@
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  item_type<span class="token operator">:</span> str
-  item_id<span class="token operator">:</span> str
+  type<span class="token operator">:</span> str
+  id<span class="token operator">:</span> str
   count<span class="token operator">:</span> int
 <span class="token punctuation">}</span>
 </code></pre>

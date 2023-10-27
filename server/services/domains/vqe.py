@@ -6,6 +6,8 @@ from modules.xvqe import *
 from services.packets import *
 
 
+''' handlers & emitters '''
+
 def handle_vqe_ham(payload:Payload, g:Game) -> HandlerRet:
   # TODO: what
   return resp_ok(payload), Recp.ROOM

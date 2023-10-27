@@ -53,7 +53,7 @@ interface Item {
 
 interface SpawnItem {
   item: Item
-  loc: [float, float] 
+  loc: [int, int] 
   ttl: int
   ts: int
 }

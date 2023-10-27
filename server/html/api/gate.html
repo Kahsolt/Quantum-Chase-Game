@@ -1,5 +1,5 @@
 <!DOCTYPE html><html><head>
-      <title>movloc</title>
+      <title>gate</title>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       
@@ -24,44 +24,22 @@
     
       <div class="crossnote markdown-preview  ">
       
-<h3 id="movstart-移动开始改变">mov:start 移动开始/改变 </h3>
-<p>玩家按下/半释放方向键，进行房间广播</p>
+<h3 id="gaterot-给自己施加单比特旋转门">gate:rot 给自己施加单比特旋转门 </h3>
+<p>若为全局纠缠态/双方可见，进行房间广播；否则点对点回复</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  dir<span class="token operator">:</span> int
-  spd<span class="token operator">?</span><span class="token operator">:</span> int
+  gate<span class="token operator">:</span> str
 <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>     <span class="token comment">// 非纠缠的情况</span>
   id<span class="token operator">:</span> <span class="token builtin">string</span>
-  dir<span class="token operator">:</span> int      <span class="token comment">// 复制 request</span>
-  spd<span class="token operator">?</span><span class="token operator">:</span> int
+  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>
 <span class="token punctuation">}</span>
-</code></pre><h3 id="movstop-停止移动">mov:stop 停止移动 </h3>
-<p>玩家完全释放方向键，进行房间广播</p>
-<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>     <span class="token comment">// 纠缠的情况</span>
+  state<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>   <span class="token comment">// 实/虚/实/虚</span>
 <span class="token punctuation">}</span>
-
-<span class="token comment">// response</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>   <span class="token comment">// 服务端计算的玩家位置</span>
-<span class="token punctuation">}</span>
-</code></pre><h3 id="movfreeze-冻结移动键">mov:freeze 冻结移动键 </h3>
-<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-
-<span class="token punctuation">}</span>
-</code></pre><h3 id="movunfreeze-解冻移动键">mov:unfreeze 解冻移动键 </h3>
-<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-
-<span class="token punctuation">}</span>
-</code></pre><h3 id="locquery-查询位置">loc:query 查询位置 </h3>
-<p>消耗光子，测量隐形传态的结果，查询对方玩家</p>
+</code></pre><h3 id="gateswap-全局施加-swap-门交换双方玩家的态">gate:swap 全局施加 SWAP 门，交换双方玩家的态 </h3>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
   photon<span class="token operator">:</span> int
@@ -69,18 +47,33 @@
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  freq<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// 测量结果频度分布列</span>
+  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// loc</span>
 <span class="token punctuation">}</span>
-</code></pre><h3 id="locsync-同步位置">loc:sync 同步位置 </h3>
-<p>获取服务端计算的各玩家当前位置 (位置公布以后，误差修正用)</p>
-<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
+</code></pre><h3 id="gatecnot-全局施加-cnot-门产生全局纠缠">gate:cnot 全局施加 CNOT 门，产生全局纠缠 </h3>
+<p>进行房间广播</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
 
 <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// 服务端计算的各玩家的位置</span>
+  state<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>   <span class="token comment">// 实/虚/实/虚</span>
+<span class="token punctuation">}</span>
+</code></pre><h3 id="gatemeas-测量自己--解除全局纠缠态">gate:meas 测量自己 / 解除全局纠缠态 </h3>
+<p>进行房间广播</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+
+<span class="token punctuation">}</span>
+
+<span class="token comment">// response</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>   <span class="token comment">// 测量自己</span>
+  id<span class="token operator">:</span> <span class="token builtin">string</span>
+  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>
+<span class="token punctuation">}</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>   <span class="token comment">// 解除纠缠态</span>
+  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// loc</span>
 <span class="token punctuation">}</span>
 </code></pre>
       </div>

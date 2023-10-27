@@ -2,47 +2,21 @@
 # Author: Armit
 # Create Time: 2023/10/16
 
-from dataclass_wizard import JSONWizard
-
-from modules.qbloch import Loc, rand_loc
-from services.models import SPAWN_LIMIT, SPAWN_TTL
-from services.rand import random_gaussian_expect, random_choice
+from modules.qlocal import CircuitPack, shot_circuit
+from services.models import *
 from services.packets import *
+from services.rand import random_gaussian_expect, random_choice
 from services.utils import now_ts
 
-class ItemType(Enum):
-  PHOTON = 'photon'
-  GATE = 'gate'
+''' globals '''
 
-class ItemId(Enum):
-  PHOTON = 'photon'
-  X_GATE = 'X'
-  Y_GATE = 'Y'
-  Z_GATE = 'Z'
-  H_GATE = 'H'
-  S_GATE = 'S'
-  T_GATE = 'T'
-  RX_GATE = 'RX'
-  RY_GATE = 'RY'
-  RZ_GATE = 'RZ'
-  CNOT_GATE = 'CNOT'
-  SWAP_GATE = 'SWAP'
-
-@dataclass
-class Item:
-  type: ItemType
-  id: ItemId
-  count: int = 1
-
-@dataclass
-class SpawnItem(JSONWizard):
-  item: Item
-  loc: Loc = field(default_factory=lambda: v_f2i(rand_loc()))
-  ttl: int = field(default_factory=lambda: random_gaussian_expect(SPAWN_TTL, vmin=5))
-  ts: int = field(default_factory=now_ts)
+# set by warm_up
+spawn_rand: CircuitPack = None
 
 
-def handle_item_pick(payload:Payload, env:Env) -> HandlerRet:
+''' handlers & emitters '''
+
+def handle_item_pick(payload:Payload, rt:Runtime) -> HandlerRet:
   # TODO: ?
   return resp_ok(), Recp.ONE
 
@@ -66,10 +40,11 @@ def item_gain(player:Player, item:Item):
       bag.gate[item.id.value] = 0
     bag.gate[item.id.value] += item.count
 
+
 def item_cost(player:Player, item:Item):
   if item.count <= 0: raise ValueError('item count must be positive')
   bag = player.bag
-  
+
   if item.type == ItemType.PHOTON:
     if bag.photon < item.count: raise ValueError(f'photon not enough, has: {bag.photon}, need: {item.count}')
     bag.photon -= item.count
@@ -79,14 +54,23 @@ def item_cost(player:Player, item:Item):
     bag.gate[item.id.value] -= item.count
 
 
+''' tasks '''
+
+def run_spawn_rand() -> int:
+  nlen = len(SPAWN_WEIGHT)
+  idx = nlen + 1
+  while idx >= nlen:
+    idx = shot_circuit(spawn_rand)
+  return idx
+
+
 def task_item_spawn(sio:SocketIO, spawns:List[SpawnItem], rid:int):
   # try spawn something
   if len(spawns) < SPAWN_LIMIT:
-    item = Item(
-      type=ItemType.GATE,
-      id=random_choice([e for e in ItemId if e != ItemId.PHOTON]),
-      count=round(random_gaussian_expect(SPAWN_COUNT, vmin=1)),
-    )
+    idx = run_spawn_rand()
+    type = ItemType.GATE if idx > 0 else ItemType.PHOTON
+    count = round(random_gaussian_expect(SPAWN_COUNT_GATE if type == ItemType.GATE else SPAWN_COUNT_PHOTON, vmin=1))
+    item = Item(type=type, id=ItemId(list(SPAWN_WEIGHT.keys())[idx]), count=count)
     emit_item_spawn(sio, item, rid)
 
   # remove expired items

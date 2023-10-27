@@ -31,11 +31,11 @@ def on_disconnect():
   if sid in env.conns:
     rid = env.conns[sid]
     del env.conns[sid]
-    if rid in env.signals:
-      env.signals[rid].set()
-      del env.signals[rid]
     if rid in env.games:
-      if env.games[rid].me.keys().isdisjoint(env.conns.keys()):
+      rt = env.games[rid]
+      rt.signal.set()
+      g = rt.game
+      if g.me.keys().isdisjoint(env.conns.keys()):
         del env.games[rid]
     if rid in env.waits:
       if env.waits[rid].keys().isdisjoint(env.conns.keys()):
@@ -54,10 +54,10 @@ def on_leave(data):
   print('>> leave room :)', data)
 
 
-def is_handler_no_game(func:Callable):
+def is_handler_no_rt(func:Callable):
   sig = inspect.signature(func)
   for k, v in sig.parameters.items():
-    if v.annotation is Game: return False
+    if v.annotation is Runtime: return False
   return True
 
 def name_func_to_event(name:str) -> str:
@@ -67,26 +67,26 @@ def name_func_to_event(name:str) -> str:
   if stem is None: raise ValueError(f'unknown name: {name}')
   return stem.replace('_', ':')
 
-def make_handler(func:Handler) -> Callable[[Payload, Union[Env, Game]], None]:
+def make_handler(func:Handler) -> Handled:
   def wrapper(payload:Payload):
     evt = name_func_to_event(func.__name__)
     sid = request.sid
     rid = env.conns.get(sid)
     print(f'[{evt}] sid: {sid}, rid: {rid}')
     print(f'payload: {payload}')
-    if is_handler_no_game(func):
+    if is_handler_no_rt(func):
       ret = func(payload, env)
     else:
-      g = env.games.get(rid)
-      ret = func(payload, g)
+      rt = env.games.get(rid)
+      ret = func(payload, rt)
     if isinstance(ret, tuple):
       resp, recp = ret
     else:
       resp, recp = ret, Recp.ONE
     print(f'resp: <{recp.value}> {resp}')
-    if   recp == Recp.ALL:  sio.emit(evt, resp)
-    elif recp == Recp.ROOM: sio.emit(evt, resp, to=rid)
-    elif recp == Recp.ONE:  sio.emit(evt, resp, to=sid)
+    if   recp == Recp.ALL:  env.sio.emit(evt, resp)
+    elif recp == Recp.ROOM: env.sio.emit(evt, resp, to=rid)
+    elif recp == Recp.ONE:  env.sio.emit(evt, resp, to=sid)
   return wrapper
 
 
@@ -115,6 +115,7 @@ for name, func in emitters.items():
 
 if __name__ == '__main__':
   try:
+    warm_up()
     sio.run(app, host='0.0.0.0', port=PORT, debug=False, processes=1)
   except KeyboardInterrupt:
     print('Exit by Ctrl+C')

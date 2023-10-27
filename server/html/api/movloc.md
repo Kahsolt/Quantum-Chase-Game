@@ -34,6 +34,24 @@ interface {
 }
 ```
 
+### mov:freeze 冻结移动键
+
+```typescript
+// emit
+interface {
+
+}
+```
+
+### mov:unfreeze 解冻移动键
+
+```typescript
+// emit
+interface {
+
+}
+```
+
 ### loc:query 查询位置
 
 消耗光子，测量隐形传态的结果，查询对方玩家
@@ -49,7 +67,6 @@ interface {
   freq: [int, int]    // 测量结果频度分布列
 }
 ```
-
 
 ### loc:sync 同步位置
 

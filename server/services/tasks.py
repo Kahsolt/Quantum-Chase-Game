@@ -17,13 +17,14 @@ def null_decorator(fn):
 dead_loop = null_decorator
 
 
-def run_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple=()):
+def run_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple=(), cond:Callable=None):
   @dead_loop
   def wrapped_task():
     print(f'>> task {func.__name__} started')
     while not is_quit.is_set():
       sleep(interval)
       if is_quit.is_set(): break
+      if cond is not None and not cond(): return
       Thread(target=func, args=func_args, daemon=True).start()
     print(f'>> task {func.__name__} stopped')
 

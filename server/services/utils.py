@@ -12,8 +12,6 @@ from typing import *
 
 import numpy as np
 
-from services.models import *
-
 BASE_PATH = Path(__file__).parent.parent.absolute()
 HTML_PATH = BASE_PATH / 'html'
 PORT = os.environ.get('PORT', 5000)

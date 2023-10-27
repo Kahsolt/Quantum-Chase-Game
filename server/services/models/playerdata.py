@@ -27,16 +27,10 @@ class Player:
 
 @dataclass
 class Status:
-  stage: int = 0
+  stage: int = 0          # GameStage
   winner: str_opt = None
   startTs: int = -1
   endTs: int = -1
-
-
-@dataclass
-class Const:
-  cost: Dict[str, int] = field(default_factory=dict)
-  noise: float = 0.0
 
 
 @dataclass
@@ -44,7 +38,6 @@ class Game(JSONWizard):
   me: Union[str_opt, Dict[str, str]]
   players: Dict[Role, Player] = field(default_factory=dict)
   status: Status = Status()
-  const: Const = Const()
 
 
 if __name__ == '__main__':

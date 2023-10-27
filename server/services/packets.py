@@ -2,13 +2,14 @@
 # Author: Armit
 # Create Time: 2023/10/26
 
-from dataclasses import dataclass, field
-from threading import Event
 from enum import Enum
 
 from flask import request
 from flask_socketio import SocketIO, emit
 
+from services.models import Role, ALICE, BOB
+from services.models import Game, Player
+from services.runtime import Env, Runtime
 from services.utils import *
 
 
@@ -34,23 +35,9 @@ class Recp(Enum):
   ROOM = 'room'  # game room
   ONE  = 'one'   # p2p
 
-@dataclass
-class Env:
-  # ctx
-  sio: SocketIO
-  # sid => rid|None
-  conns: Dict[str, Optional[str]] = field(default_factory=dict)
-  # rid => sid => r
-  waits: Dict[str, Dict[str, int]] = field(default_factory=dict)
-  # rid => game
-  games: Dict[str, Game] = field(default_factory=dict)
-  # rid => Event, stop signal for all thread workers of a Game
-  signals: Dict[str, Event] = field(default_factory=dict)
-  # rid => List[SpawnItem]
-  spawns: Dict[str, List['SpawnItem']] = field(default_factory=dict)
-
 HandlerRet = Union[Tuple[Resp, Recp], Resp]
-Handler = Callable[[Payload, Union[Env, Game]], HandlerRet]
+Handler = Callable[[Payload, Union[Env, Runtime]], HandlerRet]
+Handled = Callable[[Payload, Union[Env, Runtime]], None]
 
 PREFIX_HANDLER = 'handle_'
 PREFIX_EMITTER = 'emit_'
@@ -62,6 +49,7 @@ def resp_ok(data:Union[dict, list]=None) -> Resp:
     'data': data,
     'ts': now_ts(),
   }
+
 
 def resp_error(err:str) -> Resp:
   import gc ; gc.collect()
@@ -84,10 +72,24 @@ def check_payload(payload:Payload, keys:List[Union[str, Tuple[str, type]]]):
   if keys_missing or wrong_type:
     errors = []
     if keys_missing: errors.append('missing keys: ' + ','.join(keys_missing))
-    if wrong_type: errors.append('wrong type: ' + ','.join(wrong_type))
+    if wrong_type: errors.append('wrong type keys: ' + ','.join(wrong_type))
     raise ValueError(', '.join(errors))
 
 
 def get_me(g:Game) -> Tuple[int, Player]:
   id = g.me[request.sid]
   return id, g.players[id]
+
+
+def get_rival(me:Role) -> Role:
+  return ALICE if me == BOB else ALICE
+
+
+def mk_payload_loc(g:Game, id:str=None) -> Resp:
+  if id is None:
+    return { id: g.players[id].loc for id in g.players }
+  else:
+    return {
+      'id': id,
+      'loc': g.players[id].loc,
+    }

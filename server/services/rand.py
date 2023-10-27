@@ -5,6 +5,7 @@
 from modules.xrand import *
 from services.utils import number
 
+
 # ref: https://www.bilibili.com/read/cv15865943/
 # convert: U[0, 1] => N(0, 1)
 def random_gaussian() -> float:
@@ -30,11 +31,8 @@ def random_uniform_expect(vmin:number=0.0, vmax:number=1.0) -> number:
   return type(vmin)(v)
 
 
-def random_choice(array:List[Any], weights:List[number]=None) -> Any:
-  if weights is None:
-    return array[random_int(len(array) - 1)]
-  else:
-    raise NotImplementedError
+def random_choice(array:List[Any]) -> Any:
+  return array[random_int(len(array) - 1)]
 
 
 if __name__ == '__main__':
