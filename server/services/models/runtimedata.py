@@ -13,12 +13,6 @@ from services.rand import random_gaussian_expect
 from services.utils import v_f2i, now_ts
 
 
-class GameStage(Enum):
-  QCF = 0   # run quantum coin flipping to decide role
-  QTL = 1   # run quantum teleportation find partners location
-  VQE = 2   # run vqe to solve the final location
-
-
 class ItemType(Enum):
   PHOTON = 'photon'
   GATE = 'gate'

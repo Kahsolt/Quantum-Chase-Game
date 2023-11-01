@@ -9,7 +9,6 @@ from flask_socketio import SocketIO
 
 from modules.qcircuit import Operation
 from services.models.playerdata import Game
-from services.models.runtimedata import GameStage
 try: from services.domains.item import SpawnItem    # circular import
 except: pass
 from services.utils import *
@@ -25,14 +24,9 @@ class Runtime:
   spawns: List['SpawnItem'] = field(default_factory=list)
   # entgl_circuit: each op on the circuit
   circuit: List[Operation] = field(default_factory=list)
-  # vqe_circuit: each tick (list) of gates on each qubit (tuple)
-  kanban: List[Tuple[str]] = field(default_factory=list)
 
   def is_entangled(self):
     return len(self.circuit) > 0
-  
-  def is_visible(self):
-    return self.game.status.stage >= GameStage.VQE.value
 
 
 @dataclass

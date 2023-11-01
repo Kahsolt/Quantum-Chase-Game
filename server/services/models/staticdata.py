@@ -62,7 +62,7 @@ SPAWN_WEIGHT = {
 }
 
 # 自动解除纠缠的时间
-DETGL_TTL = 60
+DETGL_TTL = 15
 
 # 门操作计算噪声 (not used)
 ENV_NOISE = 0.0

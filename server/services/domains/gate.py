@@ -8,7 +8,6 @@ from modules.qcircuit import Operation, convert_circuit
 from services.models import *
 from services.packets import *
 from services.domains.item import *
-from services.domains.movloc import emit_mov_freeze, emit_mov_unfreeze
 
 Ops = Union[Operation, List[Operation]]
 
@@ -31,7 +30,7 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
   _gate: str = payload['gate']
 
   if rt.is_entangled():
-    state = entgl_continue(rt,
+    state = entgl_evolve(rt,
       Operation(_gate, None, qid)
     )
     return resp_ok({'state': state}), Recp.ROOM
@@ -54,7 +53,7 @@ def handle_gate_swap(payload:Payload, rt:Runtime) -> HandlerRet:
   except Exception as e: return resp_error(e.args[0])
 
   if rt.is_entangled():
-    state = entgl_continue(rt,
+    state = entgl_evolve(rt,
       Operation('SWAP', None, QUBIT_MAP[id])
     )
     return resp_ok({'state': state}), Recp.ROOM
@@ -75,7 +74,7 @@ def handle_gate_cnot(payload:Payload, rt:Runtime) -> HandlerRet:
   qid1 = QUBIT_MAP[id1]
   tht0, psi0 = v_i2f(g.players[id0].loc)
   tht1, psi1 = v_i2f(g.players[id1].loc)
-  state = entgl_continue(rt, [
+  state = entgl_evolve(rt, [
     Operation('RY',   tht0,  qid0),
     Operation('RZ',   psi0,  qid0),
     Operation('RY',   tht1,  qid1),
@@ -106,6 +105,14 @@ def handle_gate_meas(payload:Payload, rt:Runtime) -> HandlerRet:
     return resp_ok(mk_payload_loc(g, id)), Recp.ROOM if rt.is_visible() else Recp.ONE
 
 
+def emit_entgl_enter(g:Game, rid:str):
+  emit('entgl:enter', {}, to=rid)
+
+
+def emit_entgl_break(g:Game, rid:str):
+  emit('entgl:break', {}, to=rid)
+
+
 ''' utils '''
 
 def cbit_to_loc(b:str) -> Loc:
@@ -126,12 +133,12 @@ def run_single_mesaure(ops:Ops) -> Loc:
   return cbit_to_loc(b)
 
 
-def entgl_continue(rt:Runtime, op:Ops) -> State:
+def entgl_evolve(rt:Runtime, op:Ops) -> State:
   # freeze move & entangle
   if not rt.is_entangled():
     for id, player in g.players.items():
       player.dir = None
-    emit_mov_freeze()
+    emit_entgl_enter()
 
   # continue state evolution
   if isinstance(op, list):
@@ -155,4 +162,4 @@ def entgl_break(rt:Runtime):
 
   # unfreeze move & disentangle
   rt.circuit.clear()
-  emit_mov_unfreeze()
+  emit_entgl_break()

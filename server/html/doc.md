@@ -4,14 +4,19 @@
 
 ----
 
+⚠ 出于帧同步的要求，所有 float 类型都统一放大为 int 类型以进行网络传输
+
+
 ⚪ Playerdata
 
 ```typescript
 interface Game {
-  me: string
-  players: Record<string/*id*/, Player>
-  status: Status
-  const: Const
+  me: string                              // 我的角色
+  players: Record<string/*id*/, Player>   // 各玩家状态
+  winner: string                          // 游戏胜利方角色
+  startTs: timestamp                      // 游戏开始时间
+  endTs: timestamp                        // 游戏结束时间
+  noise: float                            // 量子计算噪声
 }
 
 interface Player {
@@ -21,24 +26,12 @@ interface Player {
   spd: int | null
   // bloch球面位置 (tht, psi)
   loc: [int | null, int | null]
-  bag: {                  // 背包
-    photon: int           // 光子 (代币)
-    gate: {               // 量子门 (道具)
-      [name: string]: int
-    } | null
+  // 光子 (道具)
+  photon: int
+  // 量子门 (道具)
+  gate: {
+    [name: string]: int
   }
-}
-
-interface Status {
-  stage: int              // 游戏目标阶段
-  winner: string
-  startTs: timestamp
-  endTs: timestamp
-}
-
-interface Const {
-  cost: Record<string, int>   // 消耗量子门需要花费光子
-  noise: float                // 量子计算噪声
 }
 ```
 
@@ -54,8 +47,8 @@ interface Item {
 interface SpawnItem {
   item: Item
   loc: [int, int] 
-  ttl: int
-  ts: int
+  ttl: int          // 生存时长
+  ts: int           // 出生时间
 }
 ```
 

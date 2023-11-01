@@ -7,7 +7,7 @@ from enum import Enum
 from flask import request
 from flask_socketio import SocketIO, emit
 
-from services.models import Role, ALICE, BOB
+from services.models import ALICE, BOB
 from services.models import Game, Player
 from services.runtime import Env, Runtime
 from services.utils import *
@@ -81,7 +81,7 @@ def get_me(g:Game) -> Tuple[int, Player]:
   return id, g.players[id]
 
 
-def get_rival(me:Role) -> Role:
+def get_rival(me:str) -> str:
   return ALICE if me == BOB else ALICE
 
 

@@ -14,7 +14,7 @@ from modules.xrand import random_bit
 from services.models import *
 from services.packets import *
 from services.tasks import run_sched_task, run_randu_sched_task
-from services.domains.movloc import task_loc_sim
+from services.domains.mov import task_mov_sim
 from services.domains.item import task_item_spawn
 
 
@@ -86,17 +86,15 @@ def emit_game_start(env:Env, rid:str):
       ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
       BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
     },
-    status=Status(
-      startTs=now_ts(),
-      stage=1,
-    ),
+    startTs=now_ts(),
+    noise=ENV_NOISE,
   )
   rt = Runtime(
     game=g,
     signal=Event(),
   )
   env.games[rid] = rt
-  run_sched_task(rt.signal, 1/FPS, task_loc_sim, rt, cond=rt.is_entangled)
+  run_sched_task(rt.signal, 1/FPS, task_mov_sim, rt, cond=rt.is_entangled)
   run_randu_sched_task(rt.signal, [SPAWN_INTERVAL/2, SPAWN_INTERVAL*2], task_item_spawn, (env.sio, rt.spawns, rid))
 
   # distribute partial data
@@ -117,8 +115,8 @@ def emit_game_settle(env:Env, rid:str, winner:str):
 
   endTs = now_ts()
   g = env.games[rid].game
-  g.status.winner = winner
-  g.status.endTs = endTs
+  g.winner = winner
+  g.endTs = endTs
   data = {
     'winner': winner,
     'endTs': endTs,
@@ -136,7 +134,4 @@ def emit_game_settle(env:Env, rid:str, winner:str):
 def make_pstate(g:Game, me:str) -> Game:
   ret = deepcopy(g)
   ret.me = me
-  for id, player in g.players.items():
-    if id != me:
-      player.bag = None
   return ret

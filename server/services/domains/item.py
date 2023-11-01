@@ -30,28 +30,26 @@ def emit_item_spawn(sio:SocketIO, item:Item, rid:str):
 
 def item_gain(player:Player, item:Item):
   if item.count <= 0: raise ValueError('item count must be positive')
-  bag = player.bag
 
   if item.type == ItemType.PHOTON:
-    bag.photon += item.count
+    player.photon += item.count
 
   elif item.type == ItemType.GATE:
-    if item.id.value not in bag.gate:
-      bag.gate[item.id.value] = 0
-    bag.gate[item.id.value] += item.count
+    if item.id.value not in player.gate:
+      player.gate[item.id.value] = 0
+    player.gate[item.id.value] += item.count
 
 
 def item_cost(player:Player, item:Item):
   if item.count <= 0: raise ValueError('item count must be positive')
-  bag = player.bag
 
   if item.type == ItemType.PHOTON:
-    if bag.photon < item.count: raise ValueError(f'photon not enough, has: {bag.photon}, need: {item.count}')
-    bag.photon -= item.count
+    if player.photon < item.count: raise ValueError(f'photon not enough, has: {player.photon}, need: {item.count}')
+    player.photon -= item.count
   
   elif item.type == ItemType.GATE:
-    if bag.gate.get(item.id.value, 0) < item.count: raise ValueError(f'gate not enough, has: {bag.gate[item.id.value]}, need: {item.count}')
-    bag.gate[item.id.value] -= item.count
+    if player.gate.get(item.id.value, 0) < item.count: raise ValueError(f'gate not enough, has: {player.gate[item.id.value]}, need: {item.count}')
+    player.gate[item.id.value] -= item.count
 
 
 ''' tasks '''

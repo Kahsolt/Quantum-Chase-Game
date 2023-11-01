@@ -1,6 +1,6 @@
-# Quantum Tour (server)
+# Quantum Chase (server)
 
-    The server project for QGame "Quantum Tour"
+    The server project for QGame "Quantum Chase"
 
 ----
 

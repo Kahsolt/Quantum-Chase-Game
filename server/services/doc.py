@@ -2,7 +2,7 @@
 # Author: Armit
 # Create Time: 2023/10/16
 
-from flask import Blueprint, redirect, render_template
+from flask import Blueprint, render_template
 
 from services.utils import *
 
@@ -10,18 +10,9 @@ app = Blueprint('doc', __name__)
 
 
 @app.route('/')
-def index():
-  return redirect('/api')
-
 @app.route('/api')
 def api():
-  API_PATH = HTML_PATH / 'api'
-  pages = [fp.stem for fp in API_PATH.iterdir() if fp.suffix == '.html' and not fp.stem.startswith('_')]
-  return render_template('api.html', pages=pages)
-
-@app.route('/api/<page>')
-def api_(page:str):
-  return render_template(f'api/{page}.html')
+  return render_template('api.html')
 
 
 @app.route('/doc')

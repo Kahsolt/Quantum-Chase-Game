@@ -2,10 +2,8 @@
 # Author: Armit
 # Create Time: 2023/10/19
 
-from modules.xtele import teleport, Loc, loc2phi
 from services.models import *
 from services.packets import *
-from services.domains.item import item_cost
 
 
 ''' handlers & emitters '''
@@ -40,41 +38,9 @@ def handle_mov_stop(payload:Payload, rt:Runtime) -> HandlerRet:
   return resp_ok(resp), Recp.ROOM
 
 
-def handle_loc_query(payload:Payload, rt:Runtime) -> HandlerRet:
-  try:
-    check_payload(payload, [('photon', int)])
-    assert payload['photon'] > 0
-  except Exception as e: return resp_error(e.args[0])
-
-  g = rt.game
-  id, player = get_me(g)
-
-  try: item_cost(player, ItemType.PHOTON, ItemId.PHOTON, payload['photon'])
-  except Exception as e: return resp_error(e.args[0])
-
-  loc = g.players[get_rival(id)].loc
-  freq = teleport(loc2phi(loc))
-
-  return resp_ok({'freq': freq}), Recp.ONE
-
-
-def handle_loc_sync(payload:Payload, rt:Runtime) -> HandlerRet:
-  resp = mk_payload_loc(g)
-
-  return resp_ok(resp), Recp.ONE
-
-
-def emit_mov_freeze(g:Game, rid:str):
-  emit('mov:freeze', {}, to=rid)
-
-
-def emit_mov_unfreeze(g:Game, rid:str):
-  emit('mov:unfreeze', {}, to=rid)
-
-
 ''' tasks '''
 
-def task_loc_sim(rt:Runtime):
+def task_mov_sim(rt:Runtime):
   for id, player in rt.game.players.items():
     dir = player.dir
     if dir is None: continue

@@ -25,14 +25,17 @@
       <div class="crossnote markdown-preview  ">
       
 <h1 id="playerdata-documentation">Playerdata documentation </h1>
-<p>=&gt; API doc: <a href="..\api">/api</a></p>
+<p>=&gt; API doc: <a href="..\..\api">/api</a></p>
 <hr>
+<p>⚠ 出于帧同步的要求，所有 float 类型都统一放大为 int 类型以进行网络传输</p>
 <p>⚪ Playerdata</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-interface">interface</span> <span class="token class-name">Game</span> <span class="token punctuation">{</span>
-  me<span class="token operator">:</span> <span class="token builtin">string</span>
-  players<span class="token operator">:</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token comment">/*id*/</span><span class="token punctuation">,</span> Player<span class="token operator">&gt;</span>
-  status<span class="token operator">:</span> Status
-  <span class="token keyword keyword-const">const</span><span class="token operator">:</span> Const
+  me<span class="token operator">:</span> <span class="token builtin">string</span>                              <span class="token comment">// 我的角色</span>
+  players<span class="token operator">:</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token comment">/*id*/</span><span class="token punctuation">,</span> Player<span class="token operator">&gt;</span>   <span class="token comment">// 各玩家状态</span>
+  winner<span class="token operator">:</span> <span class="token builtin">string</span>                          <span class="token comment">// 游戏胜利方角色</span>
+  startTs<span class="token operator">:</span> timestamp                      <span class="token comment">// 游戏开始时间</span>
+  endTs<span class="token operator">:</span> timestamp                        <span class="token comment">// 游戏结束时间</span>
+  noise<span class="token operator">:</span> float                            <span class="token comment">// 量子计算噪声</span>
 <span class="token punctuation">}</span>
 
 <span class="token keyword keyword-interface">interface</span> <span class="token class-name">Player</span> <span class="token punctuation">{</span>
@@ -42,24 +45,12 @@
   spd<span class="token operator">:</span> int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
   <span class="token comment">// bloch球面位置 (tht, psi)</span>
   loc<span class="token operator">:</span> <span class="token punctuation">[</span>int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">,</span> int <span class="token operator">|</span> <span class="token keyword keyword-null">null</span><span class="token punctuation">]</span>
-  bag<span class="token operator">:</span> <span class="token punctuation">{</span>                  <span class="token comment">// 背包</span>
-    photon<span class="token operator">:</span> int           <span class="token comment">// 光子 (代币)</span>
-    gate<span class="token operator">:</span> <span class="token punctuation">{</span>               <span class="token comment">// 量子门 (道具)</span>
-      <span class="token punctuation">[</span>name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> int
-    <span class="token punctuation">}</span> <span class="token operator">|</span> <span class="token keyword keyword-null">null</span>
+  <span class="token comment">// 光子 (代币)</span>
+  photon<span class="token operator">:</span> int
+  <span class="token comment">// 量子门 (道具)</span>
+  gate<span class="token operator">:</span> <span class="token punctuation">{</span>
+    <span class="token punctuation">[</span>name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> int
   <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-<span class="token keyword keyword-interface">interface</span> <span class="token class-name">Status</span> <span class="token punctuation">{</span>
-  stage<span class="token operator">:</span> int              <span class="token comment">// 游戏目标阶段</span>
-  winner<span class="token operator">:</span> <span class="token builtin">string</span>
-  startTs<span class="token operator">:</span> timestamp
-  endTs<span class="token operator">:</span> timestamp
-<span class="token punctuation">}</span>
-
-<span class="token keyword keyword-interface">interface</span> <span class="token class-name">Const</span> <span class="token punctuation">{</span>
-  cost<span class="token operator">:</span> Record<span class="token operator">&lt;</span><span class="token builtin">string</span><span class="token punctuation">,</span> int<span class="token operator">&gt;</span>   <span class="token comment">// 消耗量子门需要花费光子</span>
-  noise<span class="token operator">:</span> float                <span class="token comment">// 量子计算噪声</span>
 <span class="token punctuation">}</span>
 </code></pre><p>⚪ Item</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-interface">interface</span> <span class="token class-name">Item</span> <span class="token punctuation">{</span>
@@ -71,8 +62,8 @@
 <span class="token keyword keyword-interface">interface</span> <span class="token class-name">SpawnItem</span> <span class="token punctuation">{</span>
   item<span class="token operator">:</span> Item
   loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span> 
-  ttl<span class="token operator">:</span> int
-  ts<span class="token operator">:</span> int
+  ttl<span class="token operator">:</span> int          <span class="token comment">// 生存时长</span>
+  ts<span class="token operator">:</span> int           <span class="token comment">// 出生时间</span>
 <span class="token punctuation">}</span>
 </code></pre><hr>
 <p> by Armit <time> 2023/10/16 </time> </p>

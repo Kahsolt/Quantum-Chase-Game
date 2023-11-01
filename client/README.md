@@ -1,6 +1,6 @@
-# Quantum Tour (client)
+# Quantum Chase (client)
 
-    The client project for QGame "Quantum Tour"
+    The client project for QGame "Quantum Chase"
 
 ----
 
