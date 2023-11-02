@@ -144,8 +144,11 @@ def loc_sync(data:Data):
     game.players[id].loc = loc
 
 @sio.on('item:spawn')
+@unpack_data
 def item_spawn(data:Data):
-  ui_show_info(str(data))
+  item = data['item']
+  info = f'>> spawn {item["type"]}:{item["id"]} {item["count"]}'
+  ui_show_info(info)
 
 
 def handle_input_z(evt:KeyboardEvent):
@@ -159,6 +162,7 @@ def handle_input_x(evt:KeyboardEvent):
   sio.emit('game:join', {
     'rid': args.room, 
     'r': rand_bit(),
+    'debug': True,
   })
 
 @has_game

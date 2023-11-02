@@ -26,8 +26,9 @@ def handle_game_join(payload:Payload, env:Env) -> HandlerRet:
     assert payload['r'] in [0, 1], '`r` must in [0, 1]'
   except Exception as e: return resp_error(e.args[0])
 
-  _rid: str = payload['rid']
-  _r:   int = payload['r']
+  _rid:   str  = payload['rid']
+  _r:     int  = payload['r']
+  _debug: bool = payload['debug']
 
   if payload['rid'] in env.games:   # room in use
     return resp_error('room is occupied in gaming')
@@ -49,8 +50,8 @@ def handle_game_join(payload:Payload, env:Env) -> HandlerRet:
   env.waits[_rid][sid] = _r     # init stuff
 
   # two players meet, let's start the game
-  if len(env.waits[_rid]) == 2:
-    emit_game_start(env, _rid)
+  if len(env.waits[_rid]) == 2 or _debug:
+    emit_game_start(env, _rid, _debug)
 
   # this is delayed, but no bother
   return resp_ok(), Recp.ONE
@@ -63,15 +64,20 @@ def handle_game_sync(payload:Payload, rt:Runtime) -> HandlerRet:
   return resp_ok(player), Recp.ONE
 
 
-def emit_game_start(env:Env, rid:str):
+def emit_game_start(env:Env, rid:str, debug:bool=False):
   if rid not in env.waits: return
   if rid in env.games: return
 
   # run Q-coin to decide final Alice & Bob role
   id_a, id_b = ALICE, BOB             # init role
   init_stuff = env.waits[rid]
-  sid_a, sid_b = list(init_stuff.keys())
-  bit_a, bit_b = init_stuff[sid_a], init_stuff[sid_b]
+  if debug:
+    sid_a = list(init_stuff.keys())[0]
+    sid_b = sid_a
+    bit_a = bit_b = init_stuff[sid_a]
+  else:
+    sid_a, sid_b = list(init_stuff.keys())
+    bit_a, bit_b = init_stuff[sid_a], init_stuff[sid_b]
   bas = random_bit()                  # assume the basis is chosen by Charlie
   r = toss_coin((bit_a, bas), bit_b)
   if r == 1: id_a, id_b = id_b, id_a  # swap role

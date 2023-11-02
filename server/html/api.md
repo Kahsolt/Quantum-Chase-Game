@@ -36,8 +36,9 @@ interface {
 ```typescript
 // request
 interface {
-  rid: int    // 房间号
-  r: int      // 选择比特值用以初始化
+  rid: int      // 房间号
+  r: int        // 选择比特值用以初始化
+  debug: bool   // 单人debug模式
 }
 
 // response

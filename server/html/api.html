@@ -25,7 +25,7 @@
       <div class="crossnote markdown-preview  ">
       
 <h1 id="api-documentation">API documentation </h1>
-<p>=&gt; playerdata doc: <a href="..\..\doc">/doc</a></p>
+<p>=&gt; playerdata doc: <a href="..\doc">/doc</a></p>
 <h3 id="general">General </h3>
 <p>Serving game logic through <strong>Websocket</strong> protocol<br>
 The payload for both requests and responses are in <strong>JSON</strong> format<br>
@@ -49,8 +49,9 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 <p>点击开始游戏后，等待双方确认</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  rid<span class="token operator">:</span> int    <span class="token comment">// 房间号</span>
-  r<span class="token operator">:</span> int      <span class="token comment">// 选择比特值用以初始化</span>
+  rid<span class="token operator">:</span> int      <span class="token comment">// 房间号</span>
+  r<span class="token operator">:</span> int        <span class="token comment">// 选择比特值用以初始化</span>
+  debug<span class="token operator">:</span> bool   <span class="token comment">// 单人debug模式</span>
 <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
@@ -219,8 +220,8 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 <span class="token punctuation">}</span>
 </code></pre><hr>
 <h3 id="debug">Debug </h3>
-<p>=&gt; websocket test page: <a href="..\..\ws">/ws</a><br>
-=&gt; runtime info: <a href="..\..\info">/info</a></p>
+<p>=&gt; websocket test page: <a href="..\ws">/ws</a><br>
+=&gt; runtime info: <a href="..\info">/info</a></p>
 <hr>
 <p> by Armit <time> 2023/10/16 </time> </p>
 
