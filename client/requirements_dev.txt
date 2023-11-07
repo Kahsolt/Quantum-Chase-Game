@@ -1,2 +1,3 @@
 windows-curses
 keyboard
+pmw     # panda3d debug

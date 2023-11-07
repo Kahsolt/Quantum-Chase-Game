@@ -28,7 +28,7 @@ def handle_game_join(payload:Payload, env:Env) -> HandlerRet:
 
   _rid:   str  = payload['rid']
   _r:     int  = payload['r']
-  _debug: bool = payload['debug']
+  _debug: bool = payload.get('debug', False)
 
   if payload['rid'] in env.games:   # room in use
     return resp_error('room is occupied in gaming')

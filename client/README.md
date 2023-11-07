@@ -26,6 +26,9 @@
   - doc: [https://docs.panda3d.org/1.10/python/index](https://docs.panda3d.org/1.10/python/index)
   - hello world demo: [https://docs.panda3d.org/1.10/python/introduction/tutorial/starting-panda3d](https://docs.panda3d.org/1.10/python/introduction/tutorial/starting-panda3d)
   - downloads & more examples: [https://www.panda3d.org/download/sdk-1-10-13/](https://www.panda3d.org/download/sdk-1-10-13/) 
+- panda3d-models-provider
+  - [https://www.panda3d.org/download/noversion/art-gallery.zip](https://www.panda3d.org/download/noversion/art-gallery.zip)
+  - [https://www.alice.org/pandagallery/](https://www.alice.org/pandagallery/)
 - curses
   - windows-curses: [https://github.com/zephyrproject-rtos/windows-curses](https://github.com/zephyrproject-rtos/windows-curses)
   - tutorial: [https://docs.python.org/zh-cn/3.12/howto/curses.html](https://docs.python.org/zh-cn/3.12/howto/curses.html)
