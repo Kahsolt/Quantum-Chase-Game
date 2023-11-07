@@ -6,6 +6,7 @@
 
 import requests as R
 from requests import Response
+from requests.exceptions import ConnectionError as HttpConnectionError
 
 from modules.qlocal import Freq, cntr2freq
 from modules.utils import SHOTS, timer

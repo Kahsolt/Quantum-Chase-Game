@@ -12,11 +12,11 @@ BOB = 'Bob'
 # 角色对应 qubit 索引
 QUBIT_MAP = {
   ALICE: 0,
-  BOB: 0,
+  BOB:   1,
 }
 
 # 角色移动角速度: 假设 60s 转一圈
-MOVE_SPEED = 2 * pi / 60
+MOVE_SPEED = 2 * pi / 60 * 5
 
 # 角色拾取范围
 PICK_RADIUS = MOVE_SPEED * 2

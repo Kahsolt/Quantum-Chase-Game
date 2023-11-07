@@ -83,25 +83,34 @@ def emit_game_start(env:Env, rid:str, debug:bool=False):
   if r == 1: id_a, id_b = id_b, id_a  # swap role
 
   # init global game state
+  init_photon = 1000
+  init_gate = { g: 99 for g in ROT_GATES + P_ROT_GATES }
+  init_gate.update({
+    'M':    99,
+    'CNOT': 99,
+    'SWAP': 99,
+  })
   g = Game(
     me={
       sid_a: id_a,
       sid_b: id_b,
     },
     players={
-      ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
-      BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()]),
+      ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photon=init_photon, gate=deepcopy(init_gate)),
+      BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photon=init_photon, gate=deepcopy(init_gate)),
     },
     startTs=now_ts(),
     noise=ENV_NOISE,
   )
   rt = Runtime(
+    sio=env.sio,
+    rid=rid,
     game=g,
     signal=Event(),
   )
   env.games[rid] = rt
-  run_sched_task(rt.signal, 1/FPS, task_mov_sim, rt, cond=rt.is_entangled)
-  run_randu_sched_task(rt.signal, [SPAWN_INTERVAL/2, SPAWN_INTERVAL*2], task_item_spawn, (env.sio, rt.spawns, rid))
+  run_sched_task(rt.signal, 1/FPS, task_mov_sim, rt, cond=(lambda: not rt.is_entangled()))
+  run_randu_sched_task(rt.signal, [SPAWN_INTERVAL/2, SPAWN_INTERVAL*2], task_item_spawn, rt)
 
   # distribute partial data
   emit('game:start', resp_ok(make_pstate(g, me=id_a).to_dict()), to=sid_a)

@@ -11,7 +11,8 @@ from direct.gui.DirectButton import DirectButton
 from direct.gui.DirectWaitBar import DirectWaitBar
 from direct.gui.DirectRadioButton import DirectRadioButton
 
-from modules.scenes.scene import Scene, GameUI
+from modules.scenes.scene import Scene, UI
+from modules.scenes.main_scene import MainScene
 from modules.prefabs import *
 from modules.assets import *
 from modules.utils import *
@@ -19,11 +20,11 @@ from modules.utils import *
 
 class TitleScene(Scene):
 
-  def __init__(self, gameUI:'GameUI'):
-    super().__init__('Title', gameUI)
+  def __init__(self, ui:'UI'):
+    super().__init__('Title', ui)
 
     # vars
-    self.v_room = [gameUI.args.room]
+    self.v_room = [ui.args.room]
     self.v_bit  = [rand_bit()]
 
     # flying cores
@@ -34,7 +35,7 @@ class TitleScene(Scene):
     #self._create_form()
 
     # controls
-    self.gameUI.accept('enter', self.try_join_game)
+    self.base.accept('enter', self.try_join_game)
 
   def _create_flying_core(self, name:str, flame_colors:List[Vec4], offsetX:int=30):
     # A floating ball.
@@ -79,7 +80,8 @@ class TitleScene(Scene):
     r = self.v_bit[0]
 
     try:
-      self.gameUI.emit_game_join(room, r)
+      main_scene: MainScene = self.ui.main_scene
+      main_scene.emit_game_join(room, r)
     except:
       #self.txt_error.setText('>> error!')
       print_exc()

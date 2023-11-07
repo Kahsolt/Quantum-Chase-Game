@@ -19,7 +19,7 @@ def convert_circuit(operations:List[Operation], nq:int) -> Tuple[Circuit, int]:
   ''' convert GUI circuit to isq format '''
 
   QREG = f'qbit q[{nq}];'
-  QMES = f'M(q[0:{nq}]);'
+  QMES = f'M(q[0:{nq}]);' if nq > 1 else 'M(q[0]);'
   QCIR = []
 
   n_params = 0

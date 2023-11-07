@@ -54,7 +54,8 @@ def task_mov_sim(rt:Runtime):
     if tht_n <  0: tht_n = 0
     if tht_n > pi: tht_n = pi
     # 经度角速度等比放缩，值循环 [0, 2*pi]
-    r = 1 / max(abs(tht - pi_2), pi_256)
+    #r = 1 / max(abs(tht - pi_2), pi_256)
+    r = 1   # 也依角速度均匀
     psi_n = psi + (R * spd / FPS) * r
     if psi_n <   0: psi_n += pi2
     if psi_n > pi2: psi_n -= pi2

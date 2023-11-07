@@ -82,14 +82,12 @@ def get_me(g:Game) -> Tuple[int, Player]:
 
 
 def get_rival(me:str) -> str:
-  return ALICE if me == BOB else ALICE
+  if me == BOB:   return ALICE
+  if me == ALICE: return BOB
 
 
 def mk_payload_loc(g:Game, id:str=None) -> Resp:
   if id is None:
     return { id: g.players[id].loc for id in g.players }
   else:
-    return {
-      'id': id,
-      'loc': g.players[id].loc,
-    }
+    return { id: g.players[id].loc }

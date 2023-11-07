@@ -109,8 +109,7 @@ interface { }
 
 // response
 interface {
-  id: string
-  loc: [int, int]   // 服务端计算的玩家位置，用于修正
+  [id: string]: [int, int]    // 服务端计算的各玩家的位置
 }
 ```
 
@@ -163,6 +162,17 @@ interface {
 }
 ```
 
+#### item:vanish 地图上事物消失（被别人捡走了）
+
+进行房间广播
+
+```typescript
+// emit
+interface {
+  ts: int     // use as uid
+}
+```
+
 #### item:pick 玩家捡东西
 
 依服务端计算的位置为准
@@ -173,9 +183,12 @@ interface { }
 
 // response
 interface {
-  type: str
-  id: str
-  count: int
+  item: {
+    type: str
+    id: str
+    count: int
+  },
+  ts: int   // use as uid
 }
 ```
 
@@ -191,11 +204,10 @@ interface {
 
 // response
 interface {     // 非纠缠的情况
-  id: string
-  loc: [int, int]
+  [id: string]: [int, int]      // 服务端计算的玩家的位置
 }
 interface {     // 纠缠的情况
-  state: [int, int, int, int]   // 实/虚/实/虚
+  state: [float] * 8   // 实/虚/实/虚/实/虚/实/虚
 }
 ```
 
@@ -205,9 +217,7 @@ interface {     // 纠缠的情况
 
 ```typescript
 // request
-interface {
-  photon: int
-}
+interface { }
 
 // response
 interface {
@@ -236,11 +246,7 @@ interface {
 interface { }
 
 // response
-interface {   // 测量自己，点对点
-  id: string
-  loc: [int, int]
-}
-interface {   // 解除纠缠态，进行房间广播
+interface {
   [id: string]: [int, int]    // loc
 }
 ```

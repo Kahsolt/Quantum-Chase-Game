@@ -6,7 +6,7 @@ from typing import List, Tuple, Union
 
 from panda3d.core import Vec4
 from panda3d.core import TransparencyAttrib
-from panda3d.core import NodePath, ModelNode
+from panda3d.core import NodePath, LineSegs
 from panda3d.core import Texture
 from direct.showbase.Loader import Loader
 from direct.motiontrail.MotionTrail import MotionTrail

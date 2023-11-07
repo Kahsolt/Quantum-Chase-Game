@@ -98,8 +98,7 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>   <span class="token comment">// 服务端计算的玩家位置，用于修正</span>
+  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// 服务端计算的各玩家的位置</span>
 <span class="token punctuation">}</span>
 </code></pre><h4 id="locquery-查询位置">loc:query 查询位置 </h4>
 <p>消耗光子，测量隐形传态的结果，查询对方玩家</p>
@@ -135,6 +134,12 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
   ttl<span class="token operator">:</span> int        <span class="token comment">// 生存时长</span>
   ts<span class="token operator">:</span> int         <span class="token comment">// 出生时间</span>
 <span class="token punctuation">}</span>
+</code></pre><h4 id="itemvanish-地图上事物消失被别人捡走了">item:vanish 地图上事物消失（被别人捡走了） </h4>
+<p>进行房间广播</p>
+<pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// emit</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
+  ts<span class="token operator">:</span> int     <span class="token comment">// use as uid</span>
+<span class="token punctuation">}</span>
 </code></pre><h4 id="itempick-玩家捡东西">item:pick 玩家捡东西 </h4>
 <p>依服务端计算的位置为准</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request </span>
@@ -142,9 +147,12 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  type<span class="token operator">:</span> str
-  id<span class="token operator">:</span> str
-  count<span class="token operator">:</span> int
+  item<span class="token operator">:</span> <span class="token punctuation">{</span>
+    type<span class="token operator">:</span> str
+    id<span class="token operator">:</span> str
+    count<span class="token operator">:</span> int
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+  ts<span class="token operator">:</span> int   <span class="token comment">// use as uid</span>
 <span class="token punctuation">}</span>
 </code></pre><h4 id="gaterot-给自己施加单比特旋转门">gate:rot 给自己施加单比特旋转门 </h4>
 <p>若为全局纠缠态，进行房间广播；否则点对点回复</p>
@@ -155,18 +163,15 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>     <span class="token comment">// 非纠缠的情况</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>
+  <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>      <span class="token comment">// 服务端计算的玩家的位置</span>
 <span class="token punctuation">}</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>     <span class="token comment">// 纠缠的情况</span>
-  state<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>   <span class="token comment">// 实/虚/实/虚</span>
+  state<span class="token operator">:</span> <span class="token punctuation">[</span>float<span class="token punctuation">]</span> <span class="token operator">*</span> <span class="token number">8</span>   <span class="token comment">// 实/虚/实/虚/实/虚/实/虚</span>
 <span class="token punctuation">}</span>
 </code></pre><h4 id="gateswap-施加-swap-门交换双方玩家的态">gate:swap 施加 SWAP 门，交换双方玩家的态 </h4>
 <p>进行房间广播</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token comment">// request</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
-  photon<span class="token operator">:</span> int
-<span class="token punctuation">}</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span> <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
@@ -186,11 +191,7 @@ All event names (alike HTTP routes) are RESTful-like designed</p>
 <span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span> <span class="token punctuation">}</span>
 
 <span class="token comment">// response</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>   <span class="token comment">// 测量自己，点对点</span>
-  id<span class="token operator">:</span> <span class="token builtin">string</span>
-  loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>
-<span class="token punctuation">}</span>
-<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>   <span class="token comment">// 解除纠缠态，进行房间广播</span>
+<span class="token keyword keyword-interface">interface</span> <span class="token punctuation">{</span>
   <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>    <span class="token comment">// loc</span>
 <span class="token punctuation">}</span>
 </code></pre><h4 id="entglfreeze-进入全局纠缠态">entgl:freeze 进入全局纠缠态 </h4>

@@ -54,7 +54,7 @@ ROT_GATES = [e.value for e in [
   ItemId.Y2P_GATE,
   ItemId.Y2M_GATE,
 ]]
-P_GATES = [e.value for e in [
+P_ROT_GATES = [e.value for e in [
   ItemId.RX_GATE,
   ItemId.RY_GATE,
   ItemId.RZ_GATE,
@@ -62,7 +62,7 @@ P_GATES = [e.value for e in [
 
 
 @dataclass
-class Item:
+class Item(JSONWizard):
   type: ItemType
   id: ItemId
   count: int = 1
@@ -73,4 +73,4 @@ class SpawnItem(JSONWizard):
   item: Item
   loc: Loc = field(default_factory=lambda: v_f2i(rand_loc()))
   ttl: int = field(default_factory=lambda: random_gaussian_expect(SPAWN_TTL, vmin=5))
-  ts: int = field(default_factory=now_ts)
+  ts: int = field(default_factory=now_ts)      # also use as uid

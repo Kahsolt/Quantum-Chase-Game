@@ -12,6 +12,10 @@ AUDIO_PATH   = ASSETS_PATH / 'audio'
 # external assets
 MO_SPHERE = MODEL_PATH / 'Sphere.egg'
 MO_SPHERE_HIGHPOLY = MODEL_PATH / 'Sphere_HighPoly.egg'
+MO_CUBE = MODEL_PATH / 'Cube.egg'
+MO_DODEC = MODEL_PATH / 'Dodecahedron.egg'
+MO_TETRA = MODEL_PATH / 'Tetrahedron.egg'
+MO_TRIA_PRISM = MODEL_PATH / 'trianglular_prism.egg'
 
 TX_PLASMA = TEXTURE_PATH / 'plasma.png'
 

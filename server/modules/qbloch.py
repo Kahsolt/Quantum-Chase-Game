@@ -31,7 +31,9 @@ def eliminate_gphase(phi:Phi) -> Phi:
     for arbitary |phi> = a|0> + b|1>, multiply by the unit vector `a.conj / |a|` will 
     force coeff on |0> become a real number: `a*a.conj/|a|`, while not changing th amplitude balance
   '''
+
   a, b = phi
+  if abs(a) < 1e-15: return 0.0, b
   mult = a.conjugate() / abs(a)
   a = (a * mult).real
   b = b * mult

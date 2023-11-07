@@ -24,7 +24,7 @@ def run_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple
     while not is_quit.is_set():
       sleep(interval)
       if is_quit.is_set(): break
-      if cond is not None and not cond(): return
+      if cond is not None and not cond(): continue
       Thread(target=func, args=func_args, daemon=True).start()
     print(f'>> task {func.__name__} stopped')
 

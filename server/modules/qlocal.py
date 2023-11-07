@@ -93,7 +93,7 @@ def run_circuit_probs(pack:CircuitPack) -> Prob:
   return qvm.probs(circuit, **kwargs)
 
 
-def shot_circuit(pack:CircuitPack) -> str:
+def shot_circuit(pack:CircuitPack) -> int:
   ''' QMeasure once '''
 
   circuit, params = pack

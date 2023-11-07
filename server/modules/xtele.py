@@ -10,9 +10,9 @@ from modules.qbloch import *
 
 
 @timer
-def teleport(phi:Phi) -> Freq:
+def teleport(phi:Phi, shots:int=3000) -> Freq:
   isq = build_circuit(phi)
-  res = submit_program(isq, 3000)
+  res = submit_program(isq, shots)
   return sum(res[::2]), sum(res[1::2])
 
 

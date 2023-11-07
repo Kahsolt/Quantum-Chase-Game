@@ -16,6 +16,10 @@ from services.utils import *
 
 @dataclass
 class Runtime:
+  # ctx
+  sio: SocketIO
+  # room
+  rid: str
   # playerdata
   game: Game
   # the stop signal for all thread workers of this Game

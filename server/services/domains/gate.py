@@ -22,7 +22,6 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
 
   g = rt.game
   id, player = get_me(g)
-  qid = QUBIT_MAP[id]
 
   try: item_cost(player, Item(ItemType.GATE, ItemId(payload['gate']), 1))
   except Exception as e: return resp_error(e.args[0])
@@ -30,19 +29,20 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
   _gate: str = payload['gate']
 
   if rt.is_entangled():
+    qid = QUBIT_MAP[id]
     state = entgl_evolve(rt,
-      Operation(_gate, None, qid)
+      (_gate, None, qid)
     )
     return resp_ok({'state': state}), Recp.ROOM
   else:
     tht, psi = v_i2f(player.loc)
     loc = run_single_evolve([
-      Operation('RY',   tht, qid),
-      Operation('RZ',   psi, qid),
-      Operation(_gate, None, qid),
+      ('RY',   tht, 0),
+      ('RZ',   psi, 0),
+      (_gate, None, 0),
     ])
     player.loc = v_f2i(loc)
-    return resp_ok(mk_payload_loc(g, id)), Recp.ROOM if rt.is_visible() else Recp.ONE
+    return resp_ok(mk_payload_loc(g, id)), Recp.ONE
 
 
 def handle_gate_swap(payload:Payload, rt:Runtime) -> HandlerRet:
@@ -54,7 +54,7 @@ def handle_gate_swap(payload:Payload, rt:Runtime) -> HandlerRet:
 
   if rt.is_entangled():
     state = entgl_evolve(rt,
-      Operation('SWAP', None, QUBIT_MAP[id])
+      ('SWAP', None, QUBIT_MAP[id])
     )
     return resp_ok({'state': state}), Recp.ROOM
   else:
@@ -75,11 +75,11 @@ def handle_gate_cnot(payload:Payload, rt:Runtime) -> HandlerRet:
   tht0, psi0 = v_i2f(g.players[id0].loc)
   tht1, psi1 = v_i2f(g.players[id1].loc)
   state = entgl_evolve(rt, [
-    Operation('RY',   tht0,  qid0),
-    Operation('RZ',   psi0,  qid0),
-    Operation('RY',   tht1,  qid1),
-    Operation('RZ',   psi1,  qid1),
-    Operation('CNOT', None, (qid1, qid0)),
+    ('RY',   tht0,  qid0),
+    ('RZ',   psi0,  qid0),
+    ('RY',   tht1,  qid1),
+    ('RZ',   psi1,  qid1),
+    ('CNOT', None, (qid1, qid0)),
   ])
   return resp_ok({'state': state}), Recp.ROOM
 
@@ -95,59 +95,64 @@ def handle_gate_meas(payload:Payload, rt:Runtime) -> HandlerRet:
     entgl_break()
     return resp_ok(mk_payload_loc(g)), Recp.ROOM
   else:
-    qid = QUBIT_MAP[id]
     tht, psi = v_i2f(player.loc)
     loc = run_single_mesaure([
-      Operation('RY', tht, qid),
-      Operation('RZ', psi, qid),
+      ('RY', tht, 0),
+      ('RZ', psi, 0),
     ])
     player.loc = v_f2i(loc)
-    return resp_ok(mk_payload_loc(g, id)), Recp.ROOM if rt.is_visible() else Recp.ONE
+    return resp_ok(mk_payload_loc(g, id)), Recp.ONE
 
 
-def emit_entgl_enter(g:Game, rid:str):
-  emit('entgl:enter', {}, to=rid)
+def emit_entgl_enter(sio:SocketIO, rid:str):
+  sio.emit('entgl:enter', {}, to=rid)
 
 
-def emit_entgl_break(g:Game, rid:str):
-  emit('entgl:break', {}, to=rid)
+def emit_entgl_break(sio:SocketIO, rid:str):
+  sio.emit('entgl:break', {}, to=rid)
 
 
 ''' utils '''
 
-def cbit_to_loc(b:str) -> Loc:
-  assert b in ['0', '1']
-  if b == '0': return phi2loc([1, 0])
-  if b == '1': return phi2loc([0, 1])
+def cbit_to_loc(b:int) -> Loc:
+  assert b in [0, 1]
+  if b == 0: return phi2loc([1, 0])
+  if b == 1: return phi2loc([0, 1])
 
 
 def run_single_evolve(ops:Ops) -> Loc:
-  circ = convert_circuit(ops, nq=1)
+  circ, _ = convert_circuit(ops, nq=1)
   phi = run_circuit_state((circ, []))
+  print('>> phi:', phi)
   return phi2loc(eliminate_gphase(phi))
 
 
 def run_single_mesaure(ops:Ops) -> Loc:
-  circ = convert_circuit(ops, nq=1)
+  circ, _ = convert_circuit(ops, nq=1)
   b = shot_circuit((circ, []))
+  print('>> b:', b)
   return cbit_to_loc(b)
 
 
 def entgl_evolve(rt:Runtime, op:Ops) -> State:
   # freeze move & entangle
   if not rt.is_entangled():
-    for id, player in g.players.items():
+    for id, player in rt.game.players.items():
       player.dir = None
-    emit_entgl_enter()
+    emit_entgl_enter(rt.sio, rt.rid)
 
   # continue state evolution
   if isinstance(op, list):
     rt.circuit.extend(op)
   else:
     rt.circuit.append(op)
-  circ = convert_circuit(rt.circuit, nq=2)
+  circ, _ = convert_circuit(rt.circuit, nq=2)
   state = run_circuit_state((circ, []))
-  return state.tolist()   # TODO: this is complex number??
+  print('>> state:', state)   # 4*complex
+  nums = []                   # 8*float
+  for c in state.tolist():
+    nums.extend([c.real, c.imag])
+  return nums
 
 
 def entgl_break(rt:Runtime):
@@ -155,11 +160,11 @@ def entgl_break(rt:Runtime):
   players = rt.game.players
 
   # measure & relocate
-  circ = convert_circuit(rt.circuit, nq=2)
+  circ, _ = convert_circuit(rt.circuit, nq=2)
   bits = shot_circuit((circ, []))
   for id in players.keys():
     players[id].loc = v_f2i(cbit_to_loc(bits[QUBIT_MAP[id]]))
 
   # unfreeze move & disentangle
   rt.circuit.clear()
-  emit_entgl_break()
+  emit_entgl_break(rt.sio, rt.rid)

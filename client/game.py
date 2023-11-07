@@ -5,7 +5,7 @@
 import uuid
 from argparse import ArgumentParser
 
-from modules.ui import GameUI
+from modules.ui import UI
 
 
 if __name__ == '__main__':
@@ -16,4 +16,4 @@ if __name__ == '__main__':
   parser.add_argument('--uuid', default=uuid.uuid4())
   args = parser.parse_args()
 
-  GameUI(args).run()
+  UI(args).run()

@@ -14,10 +14,9 @@ from modules.utils_server import *
 
 BASE_PATH = Path(__file__).parent.parent.absolute()
 
+clip = lambda x, vmin, vmax: max(vmin, min(x, vmax))
 rand_bit = lambda: random.randrange(2)
-get_rival = lambda role: 'Alice' if role == 'Bob' else 'Bob'
 
-NO_MOVE = Vec2(0, 0)
 
 def pos_to_rot(pos:Vec3) -> Vec2:
   v = pos.normalized()
@@ -56,3 +55,9 @@ def phi_str(phi:Phi) -> str:
   else:
     sign = '+'
   return f'{a:.3f}|0> {sign} ({c:.3f}{d:+.3f}i)|1>'
+
+
+def loc_dist(x:Loc, y:Loc) -> float:
+  a, b = x
+  c, d = y
+  return ((a - c) ** 2 + (b - d) ** 2) ** 0.5
