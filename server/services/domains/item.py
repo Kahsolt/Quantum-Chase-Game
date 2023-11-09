@@ -30,11 +30,11 @@ def handle_item_pick(payload:Payload, rt:Runtime) -> HandlerRet:
   emit_item_vanish(rt, spawn.ts)
   item = spawn.item
 
-  id, player, g = x_rt(rt.game)
+  id, player, g = x_rt(rt)
 
   try: item_gain(player, item)
   except Exception as e: return resp_error(e.args[0])
-  emit_item_gain(item)
+  emit_item_gain(rt, item)
 
   return resp_ok()
 

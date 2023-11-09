@@ -5,6 +5,8 @@
 from modules.assets import *
 from .utils import *
 
+Colors = List[Vec4]
+
 colors_warm = (
   # flame start colors
   Vec4(1.0, 0.0, 0.0, 1.0),
@@ -26,7 +28,7 @@ colors_cold = (
 )
 
 
-def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:List[Vec4], length:int=3, width:float=5.0) -> Prefab:
+def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:Colors, length:int=3, width:float=5.0) -> Prefab:
   texture = loader.loadTexture(TX_PLASMA)
   
   trail = MotionTrail('trail', obj)

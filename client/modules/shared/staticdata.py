@@ -19,16 +19,10 @@ QUBIT_MAP = {
 }
 
 # 角色移动角速度: 假设 60s 转一圈
-MOVE_SPEED = 2 * pi / 60 * 5
+MOVE_SPEED = 2 * pi / 60 * 3
 
 # 角色拾取范围
-PICK_RADIUS = 0.08
-
-# 背包光子数上限
-PHOTON_MAX = 999
-
-# 背包门数上限
-GATE_MAX = 64
+PICK_RADIUS = 0.06
 
 # 物品生成速度
 SPAWN_INTERVAL = 15
@@ -37,7 +31,7 @@ SPAWN_INTERVAL = 15
 SPAWN_LIMIT = 30
 
 # 物品生成的份数期望
-SPAWN_COUNT_PHOTON = 10
+SPAWN_COUNT_PHOTON = 37
 SPAWN_COUNT_GATE = 1.5
 
 # 物品存活时间期望中心

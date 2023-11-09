@@ -13,7 +13,9 @@ from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 
 from modules.scenes import *
-from modules.utils import *
+from modules.prefabs import WHITE
+
+TITLE = 'Quantum Chase v0.1'
 
 
 class UI(ShowBase):   # aka. SceneManager
@@ -24,13 +26,11 @@ class UI(ShowBase):   # aka. SceneManager
     self.args = args
 
     # Scenes
+    self.scenes: Dict[str, Scene] = {}
+    for scene_cls in SCENE_LIST:
+      scene: Scene = scene_cls(self)
+      self.scenes[scene.name] = scene
     self.cur_scene = None
-    self.title_scene = TitleScene(self)
-    self.main_scene = MainScene(self)
-    self.scenes: Dict[str, Scene] = {
-      self.title_scene.name: self.title_scene,
-      self.main_scene.name:  self.main_scene,
-    }
     self.switch_scene('Title')
 
     # Light
@@ -50,6 +50,7 @@ class UI(ShowBase):   # aka. SceneManager
     self.disableMouse()
     wp = WindowProperties()
     wp.setMouseMode(WindowProperties.M_relative)
+    wp.setTitle(TITLE)
     self.win.requestProperties(wp)
 
     # Input
@@ -62,7 +63,7 @@ class UI(ShowBase):   # aka. SceneManager
     self.accept('f8', self.enableMouse)
 
     if not 'help text':
-      genLabelText = lambda i, text: OnscreenText(text, parent=self.a2dTopLeft, scale=.05, pos=(0.06, -0.065 * i), fg=(1, 1, 1, 1), align=TextNode.ALeft)
+      genLabelText = lambda i, text: OnscreenText(text, parent=self.a2dTopLeft, scale=.05, pos=(0.06, -0.065 * i), fg=WHITE, align=TextNode.ALeft)
       lines = [
         "ESC: Quit",
         "[F1]: Toggle Wireframe",
@@ -80,6 +81,9 @@ class UI(ShowBase):   # aka. SceneManager
     # Debug
     self.setFrameRateMeter(True)
     #self.render.place()
+
+  def get_scene(self, name:str):
+    return self.scenes[name]
 
   def switch_scene(self, name:str):
     if self.cur_scene is not None:

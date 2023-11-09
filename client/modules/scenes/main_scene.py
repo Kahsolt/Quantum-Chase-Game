@@ -9,16 +9,14 @@ from socketio import Client
 
 from panda3d.core import Vec2
 from panda3d.core import TextNode
-from panda3d.core import TransparencyAttrib
-from panda3d.core import ClockObject
-from direct.task import Task
 from direct.showbase.InputStateGlobal import inputState
+from direct.task import Task
 from direct.gui.OnscreenText import OnscreenText
 
-from modules.scenes.scene import Scene, UI
-from modules.assets import *
 from modules.prefabs import *
 from modules.utils import *
+
+from .scene import Scene
 
 Packet = Dict[str, Any]
 Data = Dict[str, Any]
@@ -36,26 +34,26 @@ Data = Dict[str, Any]
 SpawnItem = Dict[str, Any]
 
 def unpack_data(fn):
-  def wrapper(app, pack:Packet):
+  def wrapper(scene:'MainScene', pack:Packet):
     print(f'>> [{fn.__name__}]: {pack}')
     if not pack['ok']:
       print('>> error:', pack['error'])
       return
-    return fn(app, pack['data'])
+    return fn(scene, pack['data'])
   return wrapper
 
 def show_emit(fn):
-  def wrapper(app, *args, **kwargs):
+  def wrapper(scene:'MainScene', *args, **kwargs):
     print(f'>> emit [{fn.__name__}]')
-    return fn(app, *args, **kwargs)
+    return fn(scene, *args, **kwargs)
   return wrapper
 
 def no_entgl(fn):
-  def wrapper(app, *args, **kwargs):
-    if app.is_entangled:
+  def wrapper(scene:'MainScene', *args, **kwargs):
+    if scene.is_entangled:
       print('>> cannot do this in entangle state')
       return
-    return fn(app, *args, **kwargs)
+    return fn(scene, *args, **kwargs)
   return wrapper
 
 
@@ -76,10 +74,12 @@ def make_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tupl
 
 class MainScene(Scene):
 
-  def __init__(self, ui:'UI'):
+  def __init__(self, ui):
     super().__init__('Main', ui)
 
-    self.globalClock = ClockObject.getGlobalClock()
+    if not 'use clock':
+      from panda3d.core import ClockObject
+      self.globalClock = ClockObject.getGlobalClock()
 
     # drag bloch
     self.mouseSpeed = 100
@@ -95,17 +95,20 @@ class MainScene(Scene):
       ALICE: self.qubit1NP,
       BOB:   self.qubit2NP,
     }
-    self.anims.extend(anims)
+    self.animLoops.extend(anims)
+
+    # control widgets
+    self._create_control_widgets()
 
     # item spawns
     self.itemsNP = self.blochNP.attachNewNode('items')
     self.itemNPs: List[Tuple[SpawnItem, NodePath]] = []
 
     # info
-    self.txtRole    = OnscreenText('', parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
-    self.txtState   = OnscreenText('', parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=(1, 1, 1, 1), align=TextNode.ACenter, mayChange=True)
-    self.txtPhotons = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
-    self.txtGates   = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
+    self.txtRole    = OnscreenText('', parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
+    self.txtState   = OnscreenText('', parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter, mayChange=True)
+    self.txtPhotons = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
+    self.txtGates   = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
 
     # server
     sio = Client(reconnection=False)
@@ -120,11 +123,12 @@ class MainScene(Scene):
       sio.on(event, obj)
     self.sio = sio
 
+    # game
+    self.is_connected = None
+    self.join_info: Tuple[Any] = None
     self.game: Game = None
     self.thrs: List[Thread] = []
     self.is_quit = Event()
-    self.is_connected = None
-    self.is_joined = None
     self.is_moving: Dict[Role, bool] = {
       ALICE: True,
       BOB:   True,
@@ -155,6 +159,10 @@ class MainScene(Scene):
 
     self.taskMgr.add(self.handleKeyboard, 'handleKeyboard')
     self.taskMgr.add(self.handleMouse,    'handleMouse')
+
+  def _create_control_widgets(self):
+    
+    self.guiNPs.extend([])
 
   def enter(self):
     self.base.setBackgroundColor(0.2, 0.2, 0.2, 0.5)
@@ -201,7 +209,7 @@ class MainScene(Scene):
     return Task.cont
 
   def handleKeyboard(self, task):
-    if not self.active: return Task.cont      # scene is cur shown?
+    if not self.isCurrentScene: return Task.cont
     if self.is_entangled: return Task.cont
 
     horz, vert = 0, 0
@@ -278,7 +286,7 @@ class MainScene(Scene):
     if self.player.gates.get(gate, 0) < 1:
       print('>> item not enough')
       return
-  
+
     if   gate == 'SWAP': self.emit_gate_swap()
     elif gate == 'CNOT': self.emit_gate_cnot()
     elif gate == 'M':    self.emit_gate_meas()
@@ -345,7 +353,9 @@ class MainScene(Scene):
 
   @unpack_data
   def on_game_join(self, data:Data):
-    print('wait for another player...')
+    from modules.scenes.title_scene import TitleScene
+    title_scene: TitleScene = self.ui.get_scene('Title')
+    title_scene.txtInfo.setText('wait for another player...')
 
   @unpack_data
   def on_game_start(self, data:Data):
@@ -423,7 +433,7 @@ class MainScene(Scene):
 
   @unpack_data
   def on_item_pick(self, data:Data):
-    print('nothing, see item:gain')
+    'nothing, see item:gain'
 
   @unpack_data
   def on_item_gain(self, item:Data):
@@ -509,19 +519,16 @@ class MainScene(Scene):
 
   @show_emit
   def emit_game_join(self, room:str, r:int):
-    if self.is_joined: return
+    if self.join_info == (room, r): return
+    print(f'>> room: {room}, r: {r}')
+    self.join_info = (room, r)
 
     if not self.is_connected:
       self.connect_server()
-
-    # 在这里执行开局掷币协议
-    print(f'>> room: {room}, r: {r}')
     self.sio.emit('game:join', {
       'rid': room, 
       'r': r,
     })
-    self.is_joined = True
-    print('>> waiting...')
 
   @show_emit
   def emit_game_sync(self):

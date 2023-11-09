@@ -4,59 +4,67 @@
 
 from direct.showbase.ShowBase import ShowBase
 
-from modules.prefabs.utils import Anims
+from modules.prefabs.utils import Objects, Anims
 from modules.prefabs.scene_fade import make_scene_fade_anims
-
-# avoid cyclic import :(
-try: from modules.ui import UI
-except ImportError: UI = object()
 
 
 class ShowBaseWrapper:
 
   def __init__(self, base:ShowBase):
     self.base = base
-    self.loader = base.loader
-    self.render = base.render
-    self.cam = base.cam
-    self.taskMgr = base.taskMgr
+
+  @property
+  def loader(self): return self.base.loader
+  @property
+  def render(self): return self.base.render
+  @property
+  def cam(self): return self.base.cam
+  @property
+  def taskMgr(self): return self.base.taskMgr
 
 
 class Scene(ShowBaseWrapper):
 
-  def __init__(self, name:str, ui:'UI'):
+  def __init__(self, name:str, ui):
     super().__init__(ui)
 
-    self.name = name
-    self.ui = ui
-    self.anims: Anims = []  # all loop anims
-    self.active: bool = None
+    from modules.ui import UI
 
-    # create root NodePath
+    self.name = name
+    self.ui: UI = ui    # backref
+    self.isCurrentScene: bool = None
+    self.animLoops: Anims = []
+    self.guiNPs: Objects = []  # 2D objects root
+
+    # create root NodePath for 3D objects
     self.sceneNP = self.render.attachNewNode(name)
     self.sceneNP.hide()
-    # create scene fading
-    self.anim_in, self.anim_out = make_scene_fade_anims(self.sceneNP)
+    # create scene fading in/out
+    self.animIn, self.animOut = make_scene_fade_anims(self.sceneNP)
 
   def enter(self):
-    print(f'>> enter {self.name}')
-    self.active = True
+    print(f'>> enter scene: {self.name}')
+    self.isCurrentScene = True
   
-    for anim in self.anims: anim.loop()
+    for obj in self.guiNPs: obj.show()
+    for anim in self.animLoops: anim.loop()
     self.sceneNP.show()
-    #self.anim_in.start()
+    self.animIn.start()
 
   def leave(self):
-    print(f'>> leave {self.name}')
-    self.active = False
+    print(f'>> leave scene: {self.name}')
+    self.isCurrentScene = False
 
-    #self.anim_out.start()
+    self.animOut.start()
     self.sceneNP.hide()
-    for anim in self.anims: anim.pause()
+    for anim in self.animLoops: anim.pause()
+    for obj in self.guiNPs: obj.hide()
 
   def destory(self):
-    print(f'>> destroy {self.name}')
+    print(f'>> destroy scene: {self.name}')
 
     self.sceneNP.removeNode()
-    for anim in self.anims: anim.finish()
-    self.anims.clear()
+    for anim in self.animLoops: anim.finish()
+    self.animLoops.clear()
+    for obj in self.guiNPs: obj.removeNode()
+    self.guiNPs.clear()
