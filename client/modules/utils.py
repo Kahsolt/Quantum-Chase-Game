@@ -14,8 +14,30 @@ from modules.utils_server import *
 
 BASE_PATH = Path(__file__).parent.parent.absolute()
 
+DIR_MAPPING = {
+  ( 0,  0): None,
+  (+1,  0): 0,
+  (+1, +1): 1,
+  ( 0, +1): 2,
+  (-1, +1): 3,
+  (-1,  0): 4,
+  (-1, -1): 5,
+  ( 0, -1): 6,
+  (+1, -1): 7,
+}
+
 clip = lambda x, vmin, vmax: max(vmin, min(x, vmax))
 rand_bit = lambda: random.randrange(2)
+
+EntglPhi = Tuple[complex, complex, complex, complex]
+
+
+def null_decorator(fn):
+  def wrapper(*args, **kwargs):
+    return fn(*args, **kwargs)
+  return wrapper
+
+dead_loop = null_decorator
 
 
 def pos_to_rot(pos:Vec3) -> Vec2:
@@ -26,19 +48,11 @@ def pos_to_rot(pos:Vec3) -> Vec2:
   return Vec2(tht, psi)
 
 def rot_to_pos(rot:Vec2) -> Vec3:
-  tht, psi = rot.x, rot.y
+  tht, psi = rot
   x = sin(tht) * cos(psi)
   y = sin(tht) * sin(psi)
   z = cos(tht)
   return Vec3(x, y, z)
-
-
-def null_decorator(fn):
-  def wrapper(*args, **kwargs):
-    return fn(*args, **kwargs)
-  return wrapper
-
-dead_loop = null_decorator
 
 
 def loc_str(loc:Loc) -> str:
@@ -55,6 +69,10 @@ def phi_str(phi:Phi) -> str:
   else:
     sign = '+'
   return f'{a:.3f}|0> {sign} ({c:.3f}{d:+.3f}i)|1>'
+
+def entgl_phi_str(phi:EntglPhi) -> str:
+  a, b, c, d = [abs(e)**2 for e in phi]
+  return f'{a:.3f}|00> + {b:.3f}|01> + {c:.3f}|10> + {d:.3f}|11>'
 
 
 def loc_dist(x:Loc, y:Loc) -> float:

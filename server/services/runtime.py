@@ -8,29 +8,30 @@ from dataclasses import dataclass, field
 from flask_socketio import SocketIO
 
 from modules.qcircuit import Operation
-from services.models.playerdata import Game
-try: from services.domains.item import SpawnItem    # circular import
-except: pass
+from services.shared import *
 from services.utils import *
 
 
 @dataclass
 class Runtime:
-  # ctx
-  sio: SocketIO
-  # room
-  rid: str
-  # playerdata
+  # backref
+  env: 'Env'
+  # playerdata (serializable)
   game: Game
   # the stop signal for all thread workers of this Game
-  signal: Event = field(default_factory=dict)
-  # item spawns of this Game
-  spawns: List['SpawnItem'] = field(default_factory=list)
+  signal: Event = field(default_factory=Event)
+  # item spawns: ts => spawn
+  spawns: Dict[int, SpawnItem] = field(default_factory=dict)
   # entgl_circuit: each op on the circuit
   circuit: List[Operation] = field(default_factory=list)
 
-  def is_entangled(self):
-    return len(self.circuit) > 0
+  @property
+  def sio(self): return self.env.sio
+
+  @property
+  def rid(self): return self.game.rid
+
+  def is_entangled(self): return len(self.circuit) > 0
 
 
 @dataclass

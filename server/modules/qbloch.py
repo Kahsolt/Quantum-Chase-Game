@@ -60,7 +60,7 @@ def phi2loc(phi:Phi) -> Loc:
   a, b = eliminate_gphase(phi)
   tht = 2 * np.arccos(a)
   tht = clock_angle(tht)
-  psi = np.log(b / np.sin(tht / 2) + 1e-15).imag
+  psi = np.log(b / (np.sin(tht / 2) - 1e-15) + 1e-15).imag
   psi = clock_angle(psi)
   assert 0 <= tht <= pi, f'`tht` should be in range [0, pi], but got {tht}'
   assert 0 <= psi <= 2*pi, f'`psi` should be in range [0, 2*pi], but got {psi}'

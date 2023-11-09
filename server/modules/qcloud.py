@@ -15,7 +15,7 @@ API_BASE = 'http://127.0.0.1:5001'
 
 
 def POST(api:str, payload:object) -> Freq:
-  resp: Response = R.post(f'{API_BASE}{api}', json=payload, timeout=30)
+  resp: Response = R.post(f'{API_BASE}{api}', json=payload, timeout=5)
   if not resp.ok:
     err = f'HTTP error: {resp.status_code} {resp.reason}'
     print('>> Error:', err)

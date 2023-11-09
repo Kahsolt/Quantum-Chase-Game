@@ -39,34 +39,25 @@ def unpack_data(fn):
   def wrapper(app, pack:Packet):
     print(f'>> [{fn.__name__}]: {pack}')
     if not pack['ok']:
-      print('>> error: ' + pack['error'])
+      print('>> error:', pack['error'])
       return
     return fn(app, pack['data'])
   return wrapper
 
-DIR_MAPPING = {
-  ( 0,  0): None,
-  (+1,  0): 0,
-  (+1, +1): 1,
-  ( 0, +1): 2,
-  (-1, +1): 3,
-  (-1,  0): 4,
-  (-1, -1): 5,
-  ( 0, -1): 6,
-  (+1, -1): 7,
-}
+def show_emit(fn):
+  def wrapper(app, *args, **kwargs):
+    print(f'>> emit [{fn.__name__}]')
+    return fn(app, *args, **kwargs)
+  return wrapper
 
-def task_show_state(game:Game, txt_state:OnscreenText):
-  loc = v_i2f(game.players[game.me].loc)
-  rot = Vec2(*loc)
-  txt_state.setText(phi_str(loc_to_phi((rot.x, rot.y))))
+def no_entgl(fn):
+  def wrapper(app, *args, **kwargs):
+    if app.is_entangled:
+      print('>> cannot do this in entangle state')
+      return
+    return fn(app, *args, **kwargs)
+  return wrapper
 
-def task_update_qubit_loc(game:Game, qubits:Dict[str, NodePath]):
-  for role, qubit in qubits.items():
-    loc = v_i2f(game.players[role].loc)
-    rot = Vec2(*loc)
-    pos = rot_to_pos(rot) * qubit.getPos().length()
-    qubit.setPos(pos)
 
 def make_sched_task(is_quit:Event, interval:float, func:Callable, func_args:tuple=(), cond:Callable=None) -> Thread:
   @dead_loop
@@ -98,7 +89,7 @@ class MainScene(Scene):
     self.lastMouseX = None
     self.lastMouseY = None
 
-    # objects
+    # bloch & qubits
     (self.blochNP, self.qubit1NP, self.qubit2NP), anims = make_bloch_qubits(self.loader, self.sceneNP)
     self.qubitNPs = {
       ALICE: self.qubit1NP,
@@ -106,17 +97,17 @@ class MainScene(Scene):
     }
     self.anims.extend(anims)
 
-    # dynamic objects
+    # item spawns
     self.itemsNP = self.blochNP.attachNewNode('items')
     self.itemNPs: List[Tuple[SpawnItem, NodePath]] = []
 
     # info
-    self.txt_role    = OnscreenText('', parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15),  fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
-    self.txt_state   = OnscreenText('', parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15),  fg=(1, 1, 1, 1), align=TextNode.ACenter, mayChange=True)
-    self.txt_photons = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
-    self.txt_gates   = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
+    self.txtRole    = OnscreenText('', parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
+    self.txtState   = OnscreenText('', parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=(1, 1, 1, 1), align=TextNode.ACenter, mayChange=True)
+    self.txtPhotons = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
+    self.txtGates   = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=(1, 1, 1, 1), align=TextNode.ALeft,   mayChange=True)
 
-    # Server
+    # server
     sio = Client(reconnection=False)
     method_type = type(self.__init__)
     print('>> register events:')
@@ -134,8 +125,12 @@ class MainScene(Scene):
     self.is_quit = Event()
     self.is_connected = None
     self.is_joined = None
-    self.is_moving = False
+    self.is_moving: Dict[Role, bool] = {
+      ALICE: True,
+      BOB:   True,
+    }
     self.is_entangled = None
+    self.entgl_phi: EntglPhi = None
 
     # controls
     # ref: https://docs.panda3d.org/1.10/python/programming/hardware-support/keyboard-support
@@ -150,6 +145,7 @@ class MainScene(Scene):
     self.base.accept('shift-z',   self.try_use_gate, ['Z'])
     self.base.accept('shift-s',   self.try_use_gate, ['S'])
     self.base.accept('shift-t',   self.try_use_gate, ['T'])
+    self.base.accept('shift-h',   self.try_use_gate, ['H'])
     self.base.accept('shift-m',   self.try_use_gate, ['M'])
     self.base.accept('alt-x',     self.try_use_gate, ['RX'])
     self.base.accept('alt-y',     self.try_use_gate, ['RY'])
@@ -170,7 +166,7 @@ class MainScene(Scene):
     super().enter()
 
   def leave(self):
-    self.txt_state.setText('')
+    self.txtState.setText('')
 
     super().leave()
     self.base.ignore('mouse1')
@@ -205,7 +201,7 @@ class MainScene(Scene):
     return Task.cont
 
   def handleKeyboard(self, task):
-    if not self.active: return Task.cont
+    if not self.active: return Task.cont      # scene is cur shown?
     if self.is_entangled: return Task.cont
 
     horz, vert = 0, 0
@@ -232,18 +228,16 @@ class MainScene(Scene):
     self.sio.connect(f'http://{args.host}:{args.port}', transports=['websocket'])
 
   @property
-  def role(self) -> str:
+  def me(self) -> str:
     return self.game.me
 
   @property
   def player(self) -> Player:
-    return self.game.players[self.role]
+    return self.game.players[self.me]
 
   @property
   def loc(self) -> Loc:
-    pos = self.qubitNPs[self.role].getPos()
-    rot = pos_to_rot(pos)
-    return rot.x, rot.y   # (tht, psi)
+    return v_i2f(self.player.loc)
 
   @property
   def phi(self) -> Phi:
@@ -251,56 +245,46 @@ class MainScene(Scene):
 
   @property
   def radius(self) -> float:   # 球模型半径
-    return self.qubitNPs[self.role].getPos().length()
+    return self.qubitNPs[self.me].getPos().length()
 
   def photons_str(self) -> str:
-    return f'photons({self.player.photon})'
+    return f'photons({self.player.photons})'
 
   def gates_str(self) -> str:
-    s = 'gates: '
-    for gate, cnt in self.player.gate.items():
+    s = ''
+    for gate, cnt in self.player.gates.items():
       s += f'{gate}({cnt}) '
     return s
 
   def try_pick_item(self) -> str:
-    print('>> try_pick_item')
-
     min_dist, ts = 1e5, None
     for item, itemNP in self.itemNPs:
-      dist = loc_dist(v_i2f(self.player.loc), v_i2f(item['loc']))
+      dist = loc_dist(self.loc, v_i2f(item['loc']))
       if dist < min_dist:
         min_dist = dist
-        ts = item['ts']
+        ts = item['ts']   # use as uid
 
     if min_dist < PICK_RADIUS and ts is not None:
       self.emit_item_pick(ts)
 
   def try_use_photon(self):
-    print('>> try_use_photon')
+    if self.player.photons < 1:
+      print('>> item not enough')
+      return
 
-    if self.player.photon < 1: print('>> item not enough') ; return
-    cnt = min(self.player.photon, 100)
-    self.emit_loc_query(cnt)
+    self.emit_loc_query(min(self.player.photons, 100))
 
   def try_use_gate(self, gate:str):
-    print('>> try_use_gate')
-
-    if gate == 'SWAP':
-      if self.player.gate.get('SWAP', 0) < 1: print('>> item not enough') ; return
-      self.emit_gate_swap()
-    elif gate == 'CNOT':
-      if self.player.gate.get('CNOT', 0) < 1: print('>> item not enough') ; return
-      self.emit_gate_cnot()
-    elif gate == 'M':
-      if self.player.gate.get('M', 0) < 1: print('>> item not enough') ; return
-      self.emit_gate_meas()
-    else:
-      if self.player.gate.get(gate, 0) < 1: print('>> item not enough') ; return
-      self.emit_gate_rot(gate)
+    if self.player.gates.get(gate, 0) < 1:
+      print('>> item not enough')
+      return
+  
+    if   gate == 'SWAP': self.emit_gate_swap()
+    elif gate == 'CNOT': self.emit_gate_cnot()
+    elif gate == 'M':    self.emit_gate_meas()
+    else:                self.emit_gate_rot(gate)
 
   def item_spawn_object(self, item:SpawnItem):
-    print('>> item_spawn_object')
-
     model = self.loader.loadModel(MO_CUBE)
     itemNP = model.copyTo(self.itemsNP)
     itemNP.setTextureOff()
@@ -314,8 +298,6 @@ class MainScene(Scene):
     self.itemNPs.append([item, itemNP])
 
   def item_vanish_object(self, ts:int):
-    print('>> item_vanish_object')
-
     for bundle in self.itemNPs:
       item, itemNP = bundle
       if item['ts'] == ts:
@@ -367,17 +349,17 @@ class MainScene(Scene):
 
   @unpack_data
   def on_game_start(self, data:Data):
-    self.game = Game.from_dict(data)
+    self._game_sync(data)
     self.start_threads()
 
-    self.txt_role.setText(self.role)
-    if self.role == ALICE:
-      self.txt_role.setFg(Vec4(0.7, 0.7, 1, 1))
+    self.txtRole.setText(self.me)
+    if self.me == ALICE:
+      self.txtRole.setFg(Vec4(0.7, 0.7, 1, 1))
     else:
-      self.txt_role.setFg(Vec4(1, 0.7, 0.7, 1))
-    self.txt_state.setText(phi_str(self.phi))
-    self.txt_photons.setText(self.photons_str())
-    self.txt_gates.setText(self.gates_str())
+      self.txtRole.setFg(Vec4(1, 0.7, 0.7, 1))
+    self.txtState.setText(phi_str(self.phi))
+    self.txtPhotons.setText(self.photons_str())
+    self.txtGates.setText(self.gates_str())
 
     self.ui.switch_scene('Main')
 
@@ -391,11 +373,11 @@ class MainScene(Scene):
 
     self.game = None
     self.sio.disconnect()
-    self.switch_scene('Title')
+    self.ui.switch_scene('Title')
 
   @unpack_data
   def on_game_sync(self, data:Data):
-    self.player[self.role] = data
+    self._game_sync(data)
 
   @unpack_data
   def on_mov_start(self, data:Data):
@@ -404,9 +386,7 @@ class MainScene(Scene):
     player.dir = data['dir']
     if 'spd' in data:
       player.spd = data['spd']
-    
-    if id == self.role:
-      self.is_moving = True
+    self.is_moving[id] = True
 
   @unpack_data
   def on_mov_stop(self, data:Data):
@@ -414,14 +394,11 @@ class MainScene(Scene):
       player = self.game.players[id]
       player.dir = None
       player.loc = [(x + y) / 2 for x, y in zip(loc, player.loc)]   # sync fix
-
-      if id == self.role:
-        self.is_moving = False
+      self.is_moving[id] = False
 
   @unpack_data
   def on_loc_sync(self, data:Data):
-    for id, loc in data.items():
-      self.game.players[id].loc = loc
+    self._loc_sync(data)
 
   @unpack_data
   def on_loc_query(self, data:Data):
@@ -446,53 +423,91 @@ class MainScene(Scene):
 
   @unpack_data
   def on_item_pick(self, data:Data):
+    print('nothing, see item:gain')
+
+  @unpack_data
+  def on_item_gain(self, item:Data):
     player = self.player
-    item = data['item']
     if item['type'] == 'photon':
-      player.photon += item['count']
-      self.txt_photons.setText(self.photons_str())
+      player.photons += item['count']
+      self.txtPhotons.setText(self.photons_str())
     else:
       item_id = item['id']
-      if item_id in player.gate:
-        player.gate[item_id] += item['count']
+      if item_id in player.gates:
+        player.gates[item_id] += item['count']
       else:
-        player.gate[item_id] = item['count']
-      self.txt_gates.setText(self.gates_str())
+        player.gates[item_id] = item['count']
+      self.txtGates.setText(self.gates_str())
+
+  @unpack_data
+  def on_item_cost(self, item:Data):
+    player = self.player
+    if item['type'] == 'photon':
+      player.photons -= item['count']
+      self.txtPhotons.setText(self.photons_str())
+    else:
+      item_id = item['id']
+      if item_id in player.gates:
+        player.gates[item_id] -= item['count']
+        if player.gates[item_id] == 0:
+          del player.gates[item_id]
+      self.txtGates.setText(self.gates_str())
 
   @unpack_data
   def on_gate_rot(self, data:Data):
-    if 'state' in data:       # 纠缠态演化
-      state = data['state']
-      state_str = str(state)
-      self.txt_state.setText(state_str)
-    else:                     # 旋转自己
-      for id, loc in data.items():
-        self.game.players[id].loc = loc
+    if 'state' in data:
+      self._state_sync(data['state'])
+    else:
+      self._loc_sync(data)
 
   @unpack_data
   def on_gate_swap(self, data:Data):
-    for id, loc in data.items():
-      self.game.players[id].loc = loc
+    if 'state' in data:
+      self._state_sync(data['state'])
+    else:
+      self._loc_sync(data)
 
   @unpack_data
   def on_gate_cnot(self, data:Data):
-    state = data['state']
+    if 'state' in data:
+      self._state_sync(data['state'])
+    else:
+      self._loc_sync(data)
 
   @unpack_data
   def on_gate_meas(self, data:Data):
-    for id, loc in data.items():
-      self.game.players[id].loc = loc
+    self._loc_sync(data)
 
   @unpack_data
-  def on_entgl_freeze(self, data:Data):
+  def on_entgl_enter(self, data:Data):
     self.is_entangled = True
+    for player in self.game.players.values():
+      player.dir = None
+    for qubitNP in self.qubitNPs.values():
+      qubitNP.hide()
 
   @unpack_data
   def on_entgl_break(self, data:Data):
     self.is_entangled = False
+    self.emit_loc_sync()
+    for qubitNP in self.qubitNPs.values():
+      qubitNP.show()
+
+  def _game_sync(self, data:Data):
+    self.game = Game.from_dict(data)
+
+  def _loc_sync(self, data:Data):
+    for id, loc in data.items():
+      self.game.players[id].loc = loc
+
+  def _state_sync(self, data:Data):
+    state = v_i2f(data)
+    entgl_state = [complex(state[2*i], state[2*i+1]) for i in range(len(state)//2)]
+    self.entgl_phi = entgl_state
 
   ''' emitters '''
 
+  @show_emit
   def emit_game_join(self, room:str, r:int):
     if self.is_joined: return
 
@@ -504,48 +519,61 @@ class MainScene(Scene):
     self.sio.emit('game:join', {
       'rid': room, 
       'r': r,
-      #'debug': True,
     })
     self.is_joined = True
     print('>> waiting...')
 
+  @show_emit
   def emit_game_sync(self):
     self.sio.emit('game:sync', {})
 
-  def emit_mov_start(self, dir:int):
-    if self.is_entangled: print('>> cannot do this in entangle state') ; return
+  @no_entgl
+  @show_emit
+  def emit_item_pick(self, ts:int):
+    self.sio.emit('item:pick', {
+      'ts': ts,
+    })
 
+  @no_entgl
+  @show_emit
+  def emit_mov_start(self, dir:int):
     self.sio.emit('mov:start', {
       'dir': dir,
     })
 
+  @no_entgl
+  @show_emit
   def emit_mov_stop(self):
-    if self.is_entangled: print('>> cannot do this in entangle state') ; return
-
     self.sio.emit('mov:stop', {})
 
+  @no_entgl
+  @show_emit
   def emit_loc_query(self, cnt:int):
-    if self.is_entangled: print('>> cannot do this in entangle state') ; return
-
     self.sio.emit('loc:query', {
-      'photon': cnt,
+      'photons': cnt,
       'basis': 'Z',   # only Z supported
     })
 
-  def emit_item_pick(self, ts:int):
-    self.sio.emit('item:pick', {'ts': ts})
+  @no_entgl
+  @show_emit
+  def emit_loc_sync(self):
+    self.sio.emit('loc:sync', {})
 
+  @show_emit
   def emit_gate_rot(self, gate:str):
     self.sio.emit('gate:rot', {
       'gate': gate,
     })
 
+  @show_emit
   def emit_gate_swap(self):
     self.sio.emit('gate:swap', {})
 
+  @show_emit
   def emit_gate_cnot(self):
     self.sio.emit('gate:cnot', {})
 
+  @show_emit
   def emit_gate_meas(self):
     self.sio.emit('gate:meas', {})
 
@@ -554,9 +582,8 @@ class MainScene(Scene):
   def start_threads(self):
     self.is_quit.clear()
     self.thrs.extend([
-      make_sched_task(self.is_quit, 1/FPS, task_sim_loc,           self.game,                  cond=(lambda: not self.is_entangled)),
-      make_sched_task(self.is_quit, 1/FPS, task_update_qubit_loc, (self.game, self.qubitNPs),  cond=(lambda: not self.is_entangled)),
-      make_sched_task(self.is_quit, 4/FPS, task_show_state,       (self.game, self.txt_state), cond=(lambda: not self.is_entangled)),
+      make_sched_task(self.is_quit, 1/FPS, self.task_update_qubit_loc),
+      make_sched_task(self.is_quit, 2/FPS, self.task_update_state),
     ])
     for thr in self.thrs:
       thr.start()
@@ -566,3 +593,21 @@ class MainScene(Scene):
     for thr in self.thrs:
       thr.join()
     self.thrs.clear()
+
+  def task_update_state(self):
+    if self.is_entangled:
+      state_str = entgl_phi_str(self.entgl_phi)
+    else:
+      state_str = phi_str(self.phi)
+    self.txtState.setText(state_str)
+
+  def task_update_qubit_loc(self):
+    # update data
+    game = self.game
+    task_sim_loc(game)
+    # update draw
+    for role, qubit in self.qubitNPs.items():
+      loc = v_i2f(game.players[role].loc)
+      rot = Vec2(*loc)
+      pos = rot_to_pos(rot) * self.radius
+      qubit.setPos(pos)

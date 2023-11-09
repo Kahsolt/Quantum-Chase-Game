@@ -1,22 +1,36 @@
 #!/usr/bin/env python3
 # Author: Armit
-# Create Time: 2023/10/27
+# Create Time: 2023/10/16
 
 from enum import Enum
-
+from typing import List, Dict, Union, Optional
 from dataclasses import dataclass, field
+
 from dataclass_wizard import JSONWizard
 
-from modules.qbloch import Loc, rand_loc
-from services.models import SPAWN_TTL
-from services.rand import random_gaussian_expect
-from services.utils import v_f2i, now_ts
+Role = str
+
+@dataclass
+class Player:
+  dir: Optional[int] = None
+  spd: int = 0
+  loc: List[int] = field(default_factory=lambda: [0, 0])
+  photons: int = 0
+  gates: Dict[str, int] = field(default_factory=dict)
+
+@dataclass
+class Game(JSONWizard):
+  rid: str
+  me: Union[Role, Dict[str, Role]]
+  players: Dict[str, Player] = field(default_factory=dict)
+  winner: Optional[Role] = None
+  startTs: int = -1
+  endTs: int = -1
 
 
 class ItemType(Enum):
   PHOTON = 'photon'
-  GATE = 'gate'
-
+  GATE   = 'gate'
 
 class ItemId(Enum):
   # photon
@@ -41,8 +55,7 @@ class ItemId(Enum):
   # gate (virtual)
   MEASURE_GATE = 'M'
 
-
-ROT_GATES = [e.value for e in [
+ROT_GATES: List[str] = [e.value for e in [
   ItemId.X_GATE,
   ItemId.Y_GATE,
   ItemId.Z_GATE,
@@ -54,12 +67,11 @@ ROT_GATES = [e.value for e in [
   ItemId.Y2P_GATE,
   ItemId.Y2M_GATE,
 ]]
-P_ROT_GATES = [e.value for e in [
+P_ROT_GATES: List[str] = [e.value for e in [
   ItemId.RX_GATE,
   ItemId.RY_GATE,
   ItemId.RZ_GATE,
 ]]
-
 
 @dataclass
 class Item(JSONWizard):
@@ -67,10 +79,15 @@ class Item(JSONWizard):
   id: ItemId
   count: int = 1
 
-
 @dataclass
 class SpawnItem(JSONWizard):
   item: Item
-  loc: Loc = field(default_factory=lambda: v_f2i(rand_loc()))
-  ttl: int = field(default_factory=lambda: random_gaussian_expect(SPAWN_TTL, vmin=5))
-  ts: int = field(default_factory=now_ts)      # also use as uid
+  loc: List[int] = field(default_factory=lambda: [0, 0])
+  ttl: int = 0
+  ts: int = 0       # also use as uid
+
+
+if __name__ == '__main__':
+  me = 'Alice'
+  g = Game(rid='test', me=me, players={me: Player()})
+  print(g)

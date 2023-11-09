@@ -15,9 +15,9 @@ def api():
   return render_template('api.html')
 
 
-@app.route('/doc')
-def doc():
-  return render_template('doc.html')
+@app.route('/data')
+def data():
+  return render_template('data.html')
 
 
 @app.route('/ws')

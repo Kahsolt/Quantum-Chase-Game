@@ -24,7 +24,6 @@ KeyCode = str
 Packet = Dict[str, Any]
 Data = Dict[str, Any]
 
-FPS = 30
 MAX_LEN = 36
 INDENT = 2
 
@@ -36,17 +35,7 @@ MOVE_D: KeyCode = 's'
 MOVE_L: KeyCode = 'a'
 MOVE_R: KeyCode = 'd'
 MOVE_KEYS: List[KeyCode] = [MOVE_U, MOVE_D, MOVE_L, MOVE_R]
-DIR_MAPPING = {
-  ( 0,  0): None,
-  (+1,  0): 0,
-  (+1, +1): 1,
-  ( 0, +1): 2,
-  (-1, +1): 3,
-  (-1,  0): 4,
-  (-1, -1): 5,
-  ( 0, -1): 6,
-  (+1, -1): 7,
-}
+
 
 sio = Client()
 stdscr = None
@@ -62,7 +51,7 @@ def unpack_data(fn):
   def wrapper(pack:Packet):
     print(f'>> [{fn.__name__}]: {pack}')
     if not pack['ok']:
-      ui_show_info('>> error: ' + pack['error'])
+      ui_show_info('>> error:', pack['error'])
       return
     return fn(pack['data'])
   return wrapper

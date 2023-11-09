@@ -10,7 +10,7 @@
   - `conda create -n isq python==3.8`
   - `conda activate isq`
   - `pip install -r requirements.txt`
-  - `link_playerdata.cmd`
+  - `link_shared.cmd`
 
 
 ### start

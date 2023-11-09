@@ -5,11 +5,14 @@
 from numpy import pi
 
 
+# 刷新帧率
+FPS = 30
+
 # 角色名
 ALICE = 'Alice'
-BOB = 'Bob'
+BOB   = 'Bob'
 
-# 角色对应 qubit 索引
+# 角色对应 qubit 索引 (两qubit线路中)
 QUBIT_MAP = {
   ALICE: 0,
   BOB:   1,
@@ -19,7 +22,7 @@ QUBIT_MAP = {
 MOVE_SPEED = 2 * pi / 60 * 5
 
 # 角色拾取范围
-PICK_RADIUS = MOVE_SPEED * 2
+PICK_RADIUS = 0.08
 
 # 背包光子数上限
 PHOTON_MAX = 999
@@ -60,6 +63,9 @@ SPAWN_WEIGHT = {
   'RZ': 5,
   'M': 5,
 }
+
+# 纬线圈提示时间
+LOC_QUERY_TTL = 10
 
 # 自动解除纠缠的时间
 DETGL_TTL = 15

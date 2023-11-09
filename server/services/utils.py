@@ -12,25 +12,18 @@ from typing import *
 
 import numpy as np
 
+
 BASE_PATH = Path(__file__).parent.parent.absolute()
 HTML_PATH = BASE_PATH / 'html'
 PORT = os.environ.get('PORT', 5000)
 
-FPS = 30
 SEED = 42
 
-number = Union[int, float]
-
-pi = np.pi
-pi2 = pi * 2
-pi_2 = pi / 2
-pi_4 = pi / 4
+pi     = np.pi
+pi2    = pi * 2
+pi_2   = pi / 2
+pi_4   = pi / 4
 pi_256 = pi / 256
-
-# NOTE: DO NOT send float numbers through network
-N_PREC = 5
-v_i2f = lambda v: [v_i2f(e) for e in v] if isinstance(v, (list, tuple)) else (v / 10**N_PREC)
-v_f2i = lambda v: [v_f2i(e) for e in v] if isinstance(v, (list, tuple)) else round(v * 10**N_PREC)
 
 
 def seed_everything(seed:int):

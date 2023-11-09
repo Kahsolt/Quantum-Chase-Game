@@ -2,33 +2,36 @@
 # Author: Armit
 # Create Time: 2023/10/19
 
-from modules.xtele import teleport, loc2phi, HttpConnectionError
-from services.models import *
-from services.packets import *
-from services.domains.item import item_cost
+from modules.qcloud import HttpConnectionError
+from modules.xtele import teleport, loc2phi, Loc
+from services.handler import *
+from services.domains.item import item_cost, emit_item_cost
 
 
 ''' handlers & emitters '''
 
 def handle_loc_query(payload:Payload, rt:Runtime) -> HandlerRet:
+  if rt.is_entangled(): return resp_error('invalid operation when entangled')
+
   try:
-    check_payload(payload, [('photon', int), ('basis', str)])
-    assert payload['photon'] > 0
+    check_payload(payload, [('photons', int), ('basis', str)])
+    assert payload['photons'] > 0
     assert payload['basis'] in ['Z', 'X']
+    assert payload['basis'] == 'Z', 'only support basis Z measure so far'
   except Exception as e: return resp_error(e.args[0])
 
-  _photon: int = payload['photon']
-  if payload['basis'] != 'Z': return resp_error('only support basis Z measure')
+  _photons: int = payload['photons']
 
-  g = rt.game
-  id, player = get_me(g)
+  id, player, g = x_rt(rt)
 
-  try: item_cost(player, Item(ItemType.PHOTON, ItemId.PHOTON, _photon))
+  item = Item(ItemType.PHOTON, ItemId.PHOTON, _photons)
+  try: item_cost(player, item)
   except Exception as e: return resp_error(e.args[0])
+  emit_item_cost(rt, item)
 
-  shots = _photon * 10
-  loc = g.players[get_rival(id)].loc
-  phi = loc2phi(v_i2f(loc))
+  shots = _photons
+  loc: Loc = v_i2f(g.players[get_rival(id)].loc)
+  phi = loc2phi(loc)
   try:
     freq = teleport(phi, shots)
   except HttpConnectionError:
@@ -38,10 +41,12 @@ def handle_loc_query(payload:Payload, rt:Runtime) -> HandlerRet:
     cntr = Counter(results)
     freq = [cntr.get(0, 0), cntr.get(1, 0)]
 
-  return resp_ok({'freq': freq}), Recp.ONE
+  return resp_ok({'freq': freq})
 
 
 def handle_loc_sync(payload:Payload, rt:Runtime) -> HandlerRet:
-  resp = mk_payload_loc(g)
+  if rt.is_entangled(): return resp_error('invalid operation when entangled')
 
-  return resp_ok(resp), Recp.ONE
+  id, player, g = x_rt(rt)
+
+  return resp_ok(mk_payload_loc(g))

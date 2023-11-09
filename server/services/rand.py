@@ -3,7 +3,8 @@
 # Create Time: 2023/10/26
 
 from modules.xrand import *
-from services.utils import number
+
+number = Union[int, float]
 
 
 # ref: https://www.bilibili.com/read/cv15865943/

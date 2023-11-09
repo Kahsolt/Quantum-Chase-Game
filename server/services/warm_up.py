@@ -3,7 +3,7 @@
 # Create Time: 2023/10/27
 
 from modules.xrand import *
-from services.models import SPAWN_WEIGHT
+from services.shared import *
 from services.domains import item
 
 

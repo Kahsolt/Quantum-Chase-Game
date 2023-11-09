@@ -6,29 +6,15 @@ from typing import *
 
 import numpy as np
 
-# src: server/services/models/playerdata.py
-from modules.playerdata import *
-
-
-# src: server/services/models/staticdata.py
-ALICE = 'Alice'
-BOB = 'Bob'
-
-PICK_RADIUS = 0.1
-LOC_QUERY_TTL = 10
+# src: server/services/shared
+from modules.shared import *
 
 # src: server/services/utils.py
-FPS = 30
-
-pi = np.pi
-pi2 = pi * 2
-pi_2 = pi / 2
-pi_4 = pi / 4
+pi     = np.pi
+pi2    = pi * 2
+pi_2   = pi / 2
+pi_4   = pi / 4
 pi_256 = pi / 256
-
-N_PREC = 5
-v_i2f = lambda v: [v_i2f(e) for e in v] if isinstance(v, (list, tuple)) else (v / 10**N_PREC)
-v_f2i = lambda v: [v_f2i(e) for e in v] if isinstance(v, (list, tuple)) else round(v * 10**N_PREC)
 
 
 # src: server/modules/qbloch.py

@@ -2,8 +2,6 @@
 # Author: Armit
 # Create Time: 2023/10/10
 
-import inspect
-
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
@@ -34,8 +32,7 @@ def on_disconnect():
     if rid in env.games:
       rt = env.games[rid]
       rt.signal.set()
-      g = rt.game
-      if g.me.keys().isdisjoint(env.conns.keys()):
+      if rt.game.me.keys().isdisjoint(env.conns.keys()):
         del env.games[rid]
     if rid in env.waits:
       if env.waits[rid].keys().isdisjoint(env.conns.keys()):
@@ -51,43 +48,7 @@ def on_join(data):
 
 @sio.on('leave')
 def on_leave(data):
-  print('>> leave room :)', data)
-
-
-def is_handler_no_rt(func:Callable):
-  sig = inspect.signature(func)
-  for k, v in sig.parameters.items():
-    if v.annotation is Runtime: return False
-  return True
-
-def name_func_to_event(name:str) -> str:
-  stem = None
-  if name.startswith(PREFIX_HANDLER): stem = name[len(PREFIX_HANDLER):]
-  if name.startswith(PREFIX_EMITTER): stem = name[len(PREFIX_EMITTER):]
-  if stem is None: raise ValueError(f'unknown name: {name}')
-  return stem.replace('_', ':')
-
-def make_handler(func:Handler) -> Handled:
-  def wrapper(payload:Payload):
-    evt = name_func_to_event(func.__name__)
-    sid = request.sid
-    rid = env.conns.get(sid)
-    print(f'[{evt}] sid: {sid}, rid: {rid}')
-    print(f'payload: {payload}')
-    if is_handler_no_rt(func):
-      ret = func(payload, env)
-    else:
-      rt = env.games.get(rid)
-      ret = func(payload, rt)
-    if isinstance(ret, tuple):
-      resp, recp = ret
-    else:
-      resp, recp = ret, Recp.ONE
-    print(f'resp: <{recp.value}> {resp}')
-    if   recp == Recp.ALL:  env.sio.emit(evt, resp)
-    elif recp == Recp.ROOM: env.sio.emit(evt, resp, to=rid)
-    elif recp == Recp.ONE:  env.sio.emit(evt, resp, to=sid)
-  return wrapper
+  print('>> leave room :(', data)
 
 
 handlers = {
@@ -99,15 +60,15 @@ print('registered handlers:')
 for name, func in handlers.items():
   event = name_func_to_event(name)
   print(f'  {event}')
-  handler = make_handler(func)
+  handler = make_handler(env, func)
   sio.on_event(event, handler)
 
-print('registered emitters:')
 emitters = {
   name: emitter 
     for name, emitter in globals().items() 
-      if name.startswith(PREFIX_EMITTER) and isinstance(handler, Callable)
+      if name.startswith(PREFIX_EMITTER) and isinstance(emitter, Callable)
 }
+print('registered emitters:')
 for name, func in emitters.items():
   event = name_func_to_event(name)
   print(f'  {event}')

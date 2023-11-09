@@ -1,6 +1,6 @@
 # API documentation
 
-=> playerdata doc: [/doc](/doc)
+=> Data Model: [/data](/data)
 
 ### General
 
@@ -16,11 +16,16 @@ interface {
 
 }
 
-// response
+// response (success)
 interface {
-  ok: bool            // success status
-  data?: list|dict    // data payload
-  error?: str         // error message
+  ok: bool = true     // success status
+  data: dict|list     // data payload
+  ts: timestamp       // server current time
+}
+// response (failed)
+interface {
+  ok: bool = false    // failed status
+  error: str          // error messag
   ts: timestamp       // server current time
 }
 ```
@@ -36,25 +41,12 @@ interface {
 ```typescript
 // request
 interface {
-  rid: int      // 房间号
-  r: int        // 选择比特值用以初始化
-  debug: bool   // 单人debug模式
+  rid: str       // 房间名
+  r: int         // 玩家选择比特值用以开局
 }
 
 // response
 interface { }
-```
-
-#### game:sync 同步 player 部分的数据
-
-```typescript
-// request
-interface { }
-
-// response
-interface {
-  // Player 结构
-}
 ```
 
 #### game:start 游戏开始
@@ -73,16 +65,28 @@ interface {
 服务器模拟达到触发条件后，主动通知客户端结束游戏
 
 ```typescript
-// emit
+// emit (broadcast)
 interface {
-  winner: string
+  winner: string    // 角色id
   endTs: int
+}
+```
+
+#### game:sync 全量数据同步
+
+```typescript
+// request
+interface { }
+
+// response
+interface {
+  // Game 结构
 }
 ```
 
 #### mov:start 移动开始/改变
 
-玩家按下/半释放方向键，进行房间广播
+玩家按下/半释放方向键
 
 ```typescript
 // request
@@ -91,48 +95,49 @@ interface {
   spd?: int
 }
 
-// response
+// response (broadcast)
 interface {
   id: string
-  dir: int      // 复制 request
+  dir: int      // 复制自 request
   spd?: int
 }
 ```
 
 #### mov:stop 停止移动
 
-玩家完全释放方向键，进行房间广播
+玩家完全释放方向键
 
 ```typescript
 // request 
 interface { }
 
-// response
+// response (broadcast)
 interface {
-  [id: string]: [int, int]    // 服务端计算的各玩家的位置
+  [id: string]: [int, int]    // 各玩家位置 (被动误差修正用)
 }
 ```
 
 #### loc:query 查询位置
 
-消耗光子，测量隐形传态的结果，查询对方玩家
+消耗光子，测量隐形传态的结果，查询对方玩家位置信息
 
 ```typescript
 // request
 interface {
-  photon: int         // 消耗光子数量
-  basis: 'Z' | 'X'    // 测量的基
+  photons: int         // 消耗光子数量
+  basis: 'Z' | 'X'    // 测量的基 (目前只支持Z)
 }
 
 // response
 interface {
   freq: [int, int]    // 测量结果频度分布列
+  photons: int
 }
 ```
 
 #### loc:sync 同步位置
 
-获取服务端计算的各玩家当前位置 (位置公布以后，误差修正用)
+获取服务端计算的各玩家当前位置 (主动误差修正用)
 
 ```typescript
 // request
@@ -140,61 +145,68 @@ interface { }
 
 // response
 interface {
-  [id: string]: [int, int]    // 服务端计算的各玩家的位置
+  [id: string]: [int, int]    // 各玩家位置
 }
 ```
 
-#### item:spawn 地图上自然生成事物
-
-进行房间广播
+#### item:spawn 地图上事物生成
 
 ```typescript
-// emit
+// emit (broadcast)
 interface {
+  ts: int         // 出生时间, use as uid
+  ttl: int        // 生存时长
+  loc: [int, int]
   item: {
     type: str
     id: str
     count: int
   }
-  loc: [int, int]
-  ttl: int        // 生存时长
-  ts: int         // 出生时间
 }
 ```
 
-#### item:vanish 地图上事物消失（被别人捡走了）
-
-进行房间广播
+#### item:vanish 地图上事物消失 (超时/被捡)
 
 ```typescript
-// emit
+// emit (broadcast)
 interface {
-  ts: int     // use as uid
-}
-```
-
-#### item:pick 玩家捡东西
-
-依服务端计算的位置为准
-
-```typescript
-// request 
-interface { }
-
-// response
-interface {
-  item: {
-    type: str
-    id: str
-    count: int
-  },
   ts: int   // use as uid
 }
 ```
 
-#### gate:rot 给自己施加单比特旋转门
+#### item:pick 玩家捡生成物
 
-若为全局纠缠态，进行房间广播；否则点对点回复
+依服务端计算的玩家所在位置为准
+
+```typescript
+// request 
+interface {
+  ts: int   // use as uid
+}
+
+// response
+interface { }   // 空返回，会触发 item:gain
+```
+
+#### item:gain 玩家获得道具
+
+```typescript
+// emit 
+interface {
+  // Item 结构
+}
+```
+
+#### item:cost 玩家消耗道具
+
+```typescript
+// emit 
+interface {
+  // Item 结构
+}
+```
+
+#### gate:rot 给自己施加单比特旋转门
 
 ```typescript
 // request
@@ -203,25 +215,24 @@ interface {
 }
 
 // response
-interface {     // 非纠缠的情况
-  [id: string]: [int, int]      // 服务端计算的玩家的位置
+interface {     // 非纠缠
+  [id: string]: [int, int]    // 各玩家位置
 }
-interface {     // 纠缠的情况
-  state: [float] * 8   // 实/虚/实/虚/实/虚/实/虚
+// response (broadcast)
+interface {     // 纠缠
+  state: [float] * 8          // 4个复数
 }
 ```
 
 #### gate:swap 施加 SWAP 门，交换双方玩家的态
 
-进行房间广播
-
 ```typescript
 // request
 interface { }
 
-// response
+// response (broadcast)
 interface {
-  [id: string]: [int, int]    // loc
+  [id: string]: [int, int]    // 各玩家位置
 }
 ```
 
@@ -235,7 +246,7 @@ interface { }
 
 // response
 interface {
-  state: [(int, int), (int, int), (int, int), (int, int)]   // 四项复数振幅
+  state: [float] * 8          // 4个复数
 }
 ```
 
@@ -247,53 +258,26 @@ interface { }
 
 // response
 interface {
-  [id: string]: [int, int]    // loc
+  [id: string]: [int, int]    // 各玩家位置
 }
 ```
 
 #### entgl:freeze 进入全局纠缠态
 
-主动房间广播，客户端应该冻结 自由移动 和 位置探测 功能
+通知客户端冻结 mov 和 loc 模块
 
 ```typescript
-// emit
+// emit (broadcast)
 interface { }
 ```
 
 #### entgl:break 解除全局纠缠态
 
-主动房间广播，客户端应该解冻 自由移动 和 位置探测 功能
+通知客户端冻结 mov 和 loc 模块
 
 ```typescript
-// emit
+// emit (broadcast)
 interface { }
-```
-
-----
-
-#### service:api 样例服务样例指令
-
-⚪ 客户端请求
-
-```typescript
-// request
-interface {
-  val: float
-}
-
-// response
-interface {
-  val: float
-}
-```
-
-⚪ 服务端推送
-
-```typescript
-// emit
-interface {
-  val: float
-}
 ```
 
 ----

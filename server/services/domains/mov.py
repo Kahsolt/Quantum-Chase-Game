@@ -2,20 +2,20 @@
 # Author: Armit
 # Create Time: 2023/10/19
 
-from services.models import *
-from services.packets import *
+from services.handler import *
 
 
 ''' handlers & emitters '''
 
 def handle_mov_start(payload:Payload, rt:Runtime) -> HandlerRet:
+  if rt.is_entangled(): return resp_error('invalid operation when entangled')
+
   try:
-    check_payload(payload, [('dir', int)])
+    check_payload(payload, [('dir', int), ('spd?', int)])
     assert 0 <= payload['dir'] <= 7
   except Exception as e: return resp_error(e.args[0])
 
-  g = rt.game
-  id, player = get_me(g)
+  id, player, g = x_rt(rt)
 
   _dir: int = payload['dir']
   _spd: int = payload.get('spd')
@@ -29,13 +29,13 @@ def handle_mov_start(payload:Payload, rt:Runtime) -> HandlerRet:
 
 
 def handle_mov_stop(payload:Payload, rt:Runtime) -> HandlerRet:
-  g = rt.game
-  id, player = get_me(g)
+  if rt.is_entangled(): return resp_error('invalid operation when entangled')
+
+  id, player, g = x_rt(rt)
 
   player.dir = None
 
-  resp = mk_payload_loc(g, id)
-  return resp_ok(resp), Recp.ROOM
+  return resp_ok(mk_payload_loc(g, id)), Recp.ROOM
 
 
 ''' tasks '''
@@ -44,6 +44,7 @@ def task_mov_sim(rt:Runtime):
   for id, player in rt.game.players.items():
     dir = player.dir
     if dir is None: continue
+
     dir_f = dir * pi_4             # enum => angle
     spd = v_i2f(player.spd)        # rescale
     tht, psi = v_i2f(player.loc)   # rescale
