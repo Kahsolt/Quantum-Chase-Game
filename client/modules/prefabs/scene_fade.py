@@ -6,12 +6,6 @@ from .utils import *
 
 
 def make_scene_fade_anims(scene:NodePath) -> Anims:
-  in_anim = Parallel(
-    LerpColorInterval(scene, 1.2, WHITE, blendType='noBlend'),
-    LerpColorScaleInterval(scene, 1.2, WHITE, WHITE_0, blendType='noBlend'),
-  )
-  out_anim = Parallel(
-    LerpColorInterval(scene, 1.2, WHITE, blendType='noBlend'),
-    LerpColorScaleInterval(scene, 1.2, WHITE_0, WHITE, blendType='noBlend')
-  )
+  in_anim  = LerpColorScaleInterval(scene, 1.2, ALPHA_1, ALPHA_0, blendType='easeIn')
+  out_anim = LerpColorScaleInterval(scene, 1.2, ALPHA_0, ALPHA_1, blendType='easeOut')
   return in_anim, out_anim

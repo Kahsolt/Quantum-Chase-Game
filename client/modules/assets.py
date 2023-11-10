@@ -7,6 +7,7 @@ from modules.utils import BASE_PATH
 ASSETS_PATH  = BASE_PATH  / 'assets'
 MODEL_PATH   = ASSETS_PATH / 'model'
 TEXTURE_PATH = ASSETS_PATH / 'texture'
+IMAGE_PATH   = ASSETS_PATH / 'image'
 AUDIO_PATH   = ASSETS_PATH / 'audio'
 
 # external assets
@@ -19,10 +20,18 @@ MO_TRIA_PRISM = MODEL_PATH / 'trianglular_prism.egg'
 
 TX_PLASMA = TEXTURE_PATH / 'plasma.png'
 
+SCENE_BGM = {
+  'Title': AUDIO_PATH / 'choose-your-player.ogg',
+  'Main':  AUDIO_PATH / 'eyes.ogg',
+}
+
+# string path in unix format
+_to_unix = lambda fp: str(fp).replace('\\', '/')
+IMG_START = _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / 'start.png')
+IMG_GATE = lambda name: _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / f'gate_{name}.png')
+IMG_QUBIT = lambda bit: _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / f'qubit_{bit}.png')
+
 
 # internal assets
-AU_SFX_ROLLOVER = 'audio/sfx/GUI_rollover'
-AU_SFX_CLICK = 'audio/sfx/GUI_click'
-
-MO_DIALOG_BOX = 'gui/dialog_box_gui'
-MO_RADIO_BUTTON = 'gui/radio_button_gui'
+AU_SFX_CLICK = 'models/audio/sfx/GUI_click.wav'
+AU_SFX_ROLLOVER = 'models/audio/sfx/GUI_rollover.wav'

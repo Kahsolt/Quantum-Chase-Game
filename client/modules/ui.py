@@ -10,12 +10,13 @@ from panda3d.core import WindowProperties
 from panda3d.core import TextNode
 from panda3d.core import DirectionalLight, AmbientLight
 from direct.showbase.ShowBase import ShowBase
-from direct.gui.OnscreenText import OnscreenText
 
+from modules.assets import *
+from modules.prefabs import *
 from modules.scenes import *
-from modules.prefabs import WHITE
 
 TITLE = 'Quantum Chase v0.1'
+
 
 
 class UI(ShowBase):   # aka. SceneManager
@@ -24,6 +25,13 @@ class UI(ShowBase):   # aka. SceneManager
     super().__init__()
 
     self.args = args
+
+    # Sfx
+    DGG.setDefaultClickSound(self.loadSfx(AU_SFX_CLICK))
+    DGG.setDefaultRolloverSound(self.loadSfx(AU_SFX_ROLLOVER))
+    self.enableAllAudio()
+    self.enableMusic(True)
+    self.enableSoundEffects(True)
 
     # Scenes
     self.scenes: Dict[str, Scene] = {}
@@ -61,6 +69,8 @@ class UI(ShowBase):   # aka. SceneManager
     self.accept('f4', self.toggleTexMem)
     self.accept('f5', self.screenshot)
     self.accept('f8', self.enableMouse)
+    self.accept('shift-1', self.switch_scene, ['Title'])
+    self.accept('shift-2', self.switch_scene, ['Main'])
 
     if not 'help text':
       genLabelText = lambda i, text: OnscreenText(text, parent=self.a2dTopLeft, scale=.05, pos=(0.06, -0.065 * i), fg=WHITE, align=TextNode.ALeft)
@@ -72,8 +82,8 @@ class UI(ShowBase):   # aka. SceneManager
         "[F4]: Texture Memory",
         "[F5]: Screenshot",
         "[F8]: Enable Mouse",
-        "[1]: switch to TitleScene",
-        "[2]: switch to MainScene",
+        "[Shift+1]: switch to TitleScene",
+        "[Shift+2]: switch to MainScene",
       ]
       for i, line in enumerate(lines, 1):
         genLabelText(i, line)

@@ -11,10 +11,10 @@ from panda3d.core import Vec2
 from panda3d.core import TextNode
 from direct.showbase.InputStateGlobal import inputState
 from direct.task import Task
-from direct.gui.OnscreenText import OnscreenText
 
 from modules.prefabs import *
 from modules.utils import *
+from modules.ui_configs import *
 
 from .scene import Scene
 
@@ -90,25 +90,13 @@ class MainScene(Scene):
     self.lastMouseY = None
 
     # bloch & qubits
-    (self.blochNP, self.qubit1NP, self.qubit2NP), anims = make_bloch_qubits(self.loader, self.sceneNP)
-    self.qubitNPs = {
-      ALICE: self.qubit1NP,
-      BOB:   self.qubit2NP,
-    }
-    self.animLoops.extend(anims)
-
-    # control widgets
-    self._create_control_widgets()
+    self._create_bloch_qubits()
+    # player controls
+    self._create_player_controls()
 
     # item spawns
     self.itemsNP = self.blochNP.attachNewNode('items')
     self.itemNPs: List[Tuple[SpawnItem, NodePath]] = []
-
-    # info
-    self.txtRole    = OnscreenText('', parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
-    self.txtState   = OnscreenText('', parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter, mayChange=True)
-    self.txtPhotons = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
-    self.txtGates   = OnscreenText('', parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=WHITE, align=TextNode.ALeft,   mayChange=True)
 
     # server
     sio = Client(reconnection=False)
@@ -144,25 +132,30 @@ class MainScene(Scene):
     inputState.watch('R', 'd', 'd-up', inputSource=inputState.WASD)
     self.base.accept('space',     self.try_pick_item)
     self.base.accept('shift-p',   self.try_use_photon)
-    self.base.accept('shift-x',   self.try_use_gate, ['X'])
-    self.base.accept('shift-y',   self.try_use_gate, ['Y'])
-    self.base.accept('shift-z',   self.try_use_gate, ['Z'])
-    self.base.accept('shift-s',   self.try_use_gate, ['S'])
-    self.base.accept('shift-t',   self.try_use_gate, ['T'])
-    self.base.accept('shift-h',   self.try_use_gate, ['H'])
-    self.base.accept('shift-m',   self.try_use_gate, ['M'])
-    self.base.accept('alt-x',     self.try_use_gate, ['RX'])
-    self.base.accept('alt-y',     self.try_use_gate, ['RY'])
-    self.base.accept('alt-z',     self.try_use_gate, ['RZ'])
-    self.base.accept('control-s', self.try_use_gate, ['SWAP'])
-    self.base.accept('control-x', self.try_use_gate, ['CNOT'])
 
     self.taskMgr.add(self.handleKeyboard, 'handleKeyboard')
     self.taskMgr.add(self.handleMouse,    'handleMouse')
 
-  def _create_control_widgets(self):
-    
-    self.guiNPs.extend([])
+  def _create_bloch_qubits(self):
+    (self.blochNP, self.qubit1NP, self.qubit2NP), anims = make_bloch_qubits(self.loader, self.sceneNP)
+    self.qubitNPs = {
+      ALICE: self.qubit1NP,
+      BOB:   self.qubit2NP,
+    }
+    self.animLoops.extend(anims)
+
+  def _create_player_controls(self):
+    self.txtRole    = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft)
+    self.txtState   = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter)
+    self.txtPhotons = OnscreenText(text='', mayChange=True, parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=WHITE, align=TextNode.ALeft)
+    self.txtGates   = OnscreenText(text='', mayChange=True, parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=WHITE, align=TextNode.ALeft)
+
+    frm = DirectFrame(self.base.a2dBottomLeft)
+    self.guiNPs.append(frm) ; frm.hide()
+    if True:
+      for i, name in enumerate(GATE_NAMES):
+        offset = GATE_SCALE * (2 * i + 1) + GATE_PAD * i
+        DirectButton(frm, image=str(IMG_GATE(name)), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.try_use_gate, extraArgs=[name])
 
   def enter(self):
     self.base.setBackgroundColor(0.2, 0.2, 0.2, 0.5)
@@ -209,6 +202,7 @@ class MainScene(Scene):
     return Task.cont
 
   def handleKeyboard(self, task):
+    if not self.has_game: return Task.cont
     if not self.isCurrentScene: return Task.cont
     if self.is_entangled: return Task.cont
 
@@ -234,6 +228,10 @@ class MainScene(Scene):
   def connect_server(self):
     args = self.ui.args
     self.sio.connect(f'http://{args.host}:{args.port}', transports=['websocket'])
+
+  @property
+  def has_game(self) -> bool:
+    return self.game is not None
 
   @property
   def me(self) -> str:
@@ -283,6 +281,7 @@ class MainScene(Scene):
     self.emit_loc_query(min(self.player.photons, 100))
 
   def try_use_gate(self, gate:str):
+    gate = GATE_NAME_MAPPING.get(gate, gate)
     if self.player.gates.get(gate, 0) < 1:
       print('>> item not enough')
       return

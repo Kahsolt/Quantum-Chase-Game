@@ -24,5 +24,7 @@ Prefab = Tuple[Objects, Anims]
 
 BLACK   = Vec4(0, 0, 0, 1)
 WHITE   = Vec4(1, 1, 1, 1)
-WHITE_0 = Vec4(1, 1, 1, 0)
 RED     = Vec4(1, 0, 0, 1)
+
+ALPHA_0 = Vec4(1, 1, 1, 0)
+ALPHA_1 = Vec4(1, 1, 1, 1)

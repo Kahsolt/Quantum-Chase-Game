@@ -18,6 +18,21 @@
 - run `run.cmd`
 
 
+#### credits
+
+The game BGM comes from [uppbeat](https://uppbeat.io/):
+
+```
+Music from #Uppbeat (free for Creators!):
+https://uppbeat.io/t/avbe/choose-your-player
+License code: GVUY6M5MUW4T5ST7
+
+Music from #Uppbeat (free for Creators!):
+https://uppbeat.io/t/john-hayes/eyes
+License code: CUP7LROXOKWTDPQY
+```
+
+
 #### reference
 
 - socket-io: [https://python-socketio.readthedocs.io/en/latest/index.html](https://python-socketio.readthedocs.io/en/latest/index.html)
