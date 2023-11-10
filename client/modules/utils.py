@@ -26,6 +26,11 @@ DIR_MAPPING = {
   (+1, -1): 7,
 }
 
+GATE_NAME_MAPPING = {
+  'SX': 'X2P',
+  'SY': 'Y2P',
+}
+
 clip = lambda x, vmin, vmax: max(vmin, min(x, vmax))
 rand_bit = lambda: random.randrange(2)
 

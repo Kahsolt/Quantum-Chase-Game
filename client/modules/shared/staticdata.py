@@ -40,6 +40,7 @@ SPAWN_TTL = 90
 # 物品生成权重
 SPAWN_WEIGHT = {
   'photon': 500,
+  'theta': 50,
   'X': 10,
   'Y': 10,
   'Z': 10,
@@ -47,9 +48,7 @@ SPAWN_WEIGHT = {
   'S': 10,
   'T': 10,
   'X2P': 20,
-  'X2M': 20,
   'Y2P': 20,
-  'Y2M': 20,
   'CNOT': 10,
   'SWAP': 5,
   'RX': 5,

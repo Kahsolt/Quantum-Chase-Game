@@ -30,28 +30,60 @@ class Game(JSONWizard):
 
 class ItemType(Enum):
   PHOTON = 'photon'
+  THETA  = 'theta'
   GATE   = 'gate'
 
 class ItemId(Enum):
   # photon
   PHOTON = 'photon'
-  # gate (non-parametrical)
+
+  # theta (angle for parametrical gates)
+  THETA = 'theta'
+
+  '''
+  ref: 
+    - isQ-open: https://www.arclightquantum.com/isq-core/grammar/#_2
+    - isQ: https://www.arclightquantum.com/isq-docs/latest/gate/
+    - Qiskit: https://qiskit.org/documentation/apidoc/circuit_library.html
+  '''
+  # gate (native of isQ-open)
   X_GATE = 'X'
   Y_GATE = 'Y'
   Z_GATE = 'Z'
   H_GATE = 'H'
-  S_GATE = 'S'
-  T_GATE = 'T'
-  X2P_GATE = 'X2P'
-  X2M_GATE = 'X2M'
-  Y2P_GATE = 'Y2P'
-  Y2M_GATE = 'Y2M'
-  CNOT_GATE = 'CNOT'
-  SWAP_GATE = 'SWAP'
-  # gate (parametrical)
+  SX_GATE = 'X2P'     # √X
+  SY_GATE = 'Y2P'     # √Y
+  S_GATE = 'S'        # √Z
+  T_GATE = 'T'        # √S
+  SXdg_GATE = 'X2M'   # √X.dagger
+  SYdg_GATE = 'Y2M'   # √Y.dagger
+  Sdg_GATE = 'SD'     # √Z.dagger
+  Tdg_GATE = 'TD'     # √S.dagger
+  CX_GATE = 'CX'
+  CY_GATE = 'CY'
+  CZ_GATE = 'CZ'
+  CNOT_GATE = 'CNOT'  # aka. CX
   RX_GATE = 'RX'
   RY_GATE = 'RY'
   RZ_GATE = 'RZ'
+  # gate (derived)
+  P_GATE  = 'P'       # = e^(iλ/2)*RZ(λ)
+  U1_GATE = 'U1'      # = P(λ) = U3(0,0,λ)
+  U2_GATE = 'U2'      # = U3(π/2,φ,λ)
+  U3_GATE = 'U3'
+  CH_GATE = 'CH'
+  CP_GATE = 'CP'
+  SWAP_GATE = 'SWAP'
+  iSWAP_GATE = 'iSWAP'
+  CRX_GATE = 'CRX'
+  CRY_GATE = 'CRY'
+  CRZ_GATE = 'CRZ'
+  RXX_GATE = 'RXX'
+  RYY_GATE = 'RYY'
+  RZZ_GATE = 'RZZ'
+  RZX_GATE = 'RZX'
+  XXpYY_GATE = 'XX+YY'
+  XXmYY_GATE = 'XX-YY'
   # gate (virtual)
   MEASURE_GATE = 'M'
 
@@ -62,10 +94,8 @@ ROT_GATES: List[str] = [e.value for e in [
   ItemId.H_GATE,
   ItemId.S_GATE,
   ItemId.T_GATE,
-  ItemId.X2P_GATE,
-  ItemId.X2M_GATE,
-  ItemId.Y2P_GATE,
-  ItemId.Y2M_GATE,
+  ItemId.SX_GATE,
+  ItemId.SY_GATE,
 ]]
 P_ROT_GATES: List[str] = [e.value for e in [
   ItemId.RX_GATE,

@@ -22,6 +22,7 @@
 
 ### references
 
+- Q gates & circuits: [https://qiskit.org/documentation/apidoc/circuit_library.html](https://qiskit.org/documentation/apidoc/circuit_library.html)
 - isQ-open (minimal version, **recommended**)
   - repo: [https://gitee.com/arclight_quantum/isq-core](https://gitee.com/arclight_quantum/isq-core)
   - doc: [https://www.arclightquantum.com/isq-core/](https://www.arclightquantum.com/isq-core/)
