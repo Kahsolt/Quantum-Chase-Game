@@ -105,7 +105,7 @@ def build_circuit(nq:int) -> Tuple[Circuit, int]:
 
   circuit = '\n'.join([QREG] + QCIR + [QMES])
 
-  if not 'debug':
+  if not 'debug isq':
     print('n_params:', n_params)
     print(circuit)
 

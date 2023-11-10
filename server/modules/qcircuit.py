@@ -32,7 +32,7 @@ def convert_circuit(operations:List[Operation], nq:int) -> Tuple[Circuit, int]:
       if isinstance(param, str):
         param_str = param
       elif isinstance(param, float):
-        param_str = str(param)
+        param_str = f'{param:.7f}'
       elif isinstance(param, int):    # vqc
         param_str = f'{VARGS}[{param}]'
         n_params += 1
@@ -53,7 +53,7 @@ def convert_circuit(operations:List[Operation], nq:int) -> Tuple[Circuit, int]:
 
   circuit = '\n'.join([QREG] + QCIR + [QMES])
 
-  if not 'debug':
+  if not 'debug isq':
     print('n_params:', n_params)
     print(circuit)
 
