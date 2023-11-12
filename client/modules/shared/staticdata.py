@@ -8,6 +8,9 @@ from numpy import pi
 # 刷新帧率
 FPS = 30
 
+# 心跳间隔
+HEART_BEAT = 5
+
 # 角色名
 ALICE = 'Alice'
 BOB   = 'Bob'

@@ -120,7 +120,7 @@ def task_item_spawn(rt:Runtime):
     spawn = SpawnItem(
       item,
       v_f2i(rand_loc()),
-      random_gaussian_expect(SPAWN_TTL, vmin=5),
+      random_gaussian_expect(SPAWN_TTL, vmin=5) * 10**3,
       now,
     )
     item_spawn(rt, spawn)

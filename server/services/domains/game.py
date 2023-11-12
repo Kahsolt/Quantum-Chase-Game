@@ -57,6 +57,10 @@ def handle_game_sync(payload:Payload, rt:Runtime) -> HandlerRet:
   return resp_ok(pstate)
 
 
+def handle_game_ping(payload:Payload, rt:Runtime) -> HandlerRet:
+  return resp_ok()
+
+
 def emit_game_start(env:Env, rid:str):
   if rid not in env.waits: return
   if rid in env.games: return

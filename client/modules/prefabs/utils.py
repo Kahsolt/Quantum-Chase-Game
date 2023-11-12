@@ -25,6 +25,11 @@ Prefab = Tuple[Objects, Anims]
 BLACK   = Vec4(0, 0, 0, 1)
 WHITE   = Vec4(1, 1, 1, 1)
 RED     = Vec4(1, 0, 0, 1)
+GREEN   = Vec4(0, 1, 0, 1)
+BLUE    = Vec4(0, 0, 1, 1)
+LIME    = Vec4(0.75, 1, 0, 1)
+YELLOW  = Vec4(1, 1, 0, 1)
+ORANGE  = Vec4(1, 0.5, 0, 1)
 
 ALPHA_0 = Vec4(1, 1, 1, 0)
 ALPHA_1 = Vec4(1, 1, 1, 1)

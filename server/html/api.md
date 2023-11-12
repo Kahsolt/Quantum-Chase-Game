@@ -84,6 +84,16 @@ interface {
 }
 ```
 
+#### game:ping 心跳
+
+```typescript
+// request
+interface { }
+
+// response
+interface { }
+```
+
 #### mov:start 移动开始/改变
 
 玩家按下/半释放方向键

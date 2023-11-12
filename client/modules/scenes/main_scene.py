@@ -2,7 +2,7 @@
 # Author: Armit
 # Create Time: 2023/11/03
 
-from time import sleep
+from time import sleep, time
 from threading import Thread, Event
 
 from socketio import Client
@@ -36,6 +36,7 @@ SpawnItem = Dict[str, Any]
 def unpack_data(fn):
   def wrapper(scene:'MainScene', pack:Packet):
     print(f'>> [{fn.__name__}]: {pack}')
+    scene.update_latency(pack['ts'])
     if not pack['ok']:
       print('>> error:', pack['error'])
       return
@@ -123,6 +124,10 @@ class MainScene(Scene):
     }
     self.is_entangled = None
     self.entgl_phi: EntglPhi = None
+
+    # network latency
+    self.txtLatentcy = OnscreenText(parent=self.base.a2dTopRight, scale=0.05, pos=(-0.02, -0.1), fg=WHITE, bg=BLACK, align=TextNode.ARight, mayChange=True)
+    self.vwin_latency = ValueWindow(15)
 
     # controls
     # ref: https://docs.panda3d.org/1.10/python/programming/hardware-support/keyboard-support
@@ -340,6 +345,10 @@ class MainScene(Scene):
 
     self.taskMgr.doMethodLater(LOC_QUERY_TTL, removeNodeTask, 'loc_hint')
 
+  def update_latency(self, server_ts:int):
+    self.last_server_ts = server_ts
+    self.vwin_latency.add(now_ts() - server_ts)
+
   ''' handlers '''
 
   def on_connect(self):
@@ -387,6 +396,10 @@ class MainScene(Scene):
   @unpack_data
   def on_game_sync(self, data:Data):
     self._game_sync(data)
+
+  @unpack_data
+  def on_game_ping(self, data:Data):
+    pass
 
   @unpack_data
   def on_mov_start(self, data:Data):
@@ -533,6 +546,10 @@ class MainScene(Scene):
   def emit_game_sync(self):
     self.sio.emit('game:sync', {})
 
+  @show_emit
+  def emit_game_ping(self):
+    self.sio.emit('game:ping', {})
+
   @no_entgl
   @show_emit
   def emit_item_pick(self, ts:int):
@@ -588,7 +605,9 @@ class MainScene(Scene):
   def start_threads(self):
     self.is_quit.clear()
     self.thrs.extend([
-      make_sched_task(self.is_quit, 1/FPS, self.task_update_qubit_loc),
+      make_sched_task(self.is_quit, HEART_BEAT, self.task_heartbeat, cond=self.task_heartbeat_cond),
+      make_sched_task(self.is_quit, 3, self.task_update_latency_meter),
+      make_sched_task(self.is_quit, 1/FPS, self.task_update_qubit_loc, cond=self.task_update_qubit_loc_cond),
       make_sched_task(self.is_quit, 2/FPS, self.task_update_state),
     ])
     for thr in self.thrs:
@@ -599,6 +618,28 @@ class MainScene(Scene):
     for thr in self.thrs:
       thr.join()
     self.thrs.clear()
+
+  def task_heartbeat(self):
+    self.emit_game_ping()
+
+  def task_heartbeat_cond(self) -> bool:
+    return now_ts() - self.last_server_ts > HEART_BEAT
+
+  def task_update_latency_meter(self):
+    latentcy: float = self.vwin_latency.mean
+    self.txtLatentcy.setText(f'{latentcy:.1f} ms')
+
+    # ref: https://zhidao.baidu.com/question/372038117473759972.html
+    if latentcy <= 30:
+      self.txtLatentcy['fg'] = GREEN
+    elif latentcy <= 50:
+      self.txtLatentcy['fg'] = LIME
+    elif latentcy <= 100:
+      self.txtLatentcy['fg'] = YELLOW
+    elif latentcy <= 200:
+      self.txtLatentcy['fg'] = ORANGE
+    else:
+      self.txtLatentcy['fg'] = RED
 
   def task_update_state(self):
     if self.is_entangled:
@@ -617,3 +658,6 @@ class MainScene(Scene):
       rot = Vec2(*loc)
       pos = rot_to_pos(rot) * self.radius
       qubit.setPos(pos)
+
+  def task_update_qubit_loc_cond(self) -> bool:
+    return not self.is_entangled

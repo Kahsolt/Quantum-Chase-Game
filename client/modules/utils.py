@@ -4,6 +4,7 @@
 
 import random
 from math import sin, cos, acos, atan2
+from time import time
 from pathlib import Path
 from traceback import print_exc
 from typing import *
@@ -43,6 +44,25 @@ def null_decorator(fn):
   return wrapper
 
 dead_loop = null_decorator
+
+def now_ts() -> int:    # milliseconds
+  return int(time() * 10**3)
+
+
+class ValueWindow:
+
+  def __init__(self, len:int=100):
+    self.v = []
+    self.len = len
+  
+  def add(self, v):
+    self.v.append(v)
+    if len(self.v) > self.len:
+      self.v = self.v[-self.len:]
+
+  @property
+  def mean(self):
+    return sum(self.v) / len(self.v) if self.v else 0
 
 
 def pos_to_rot(pos:Vec3) -> Vec2:

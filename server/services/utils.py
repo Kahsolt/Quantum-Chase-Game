@@ -30,8 +30,8 @@ def seed_everything(seed:int):
   random.seed(seed)
   np.random.seed(seed)
 
-def now_ts() -> int:
-  return int(time())
+def now_ts() -> int:    # milliseconds
+  return int(time() * 10**3)
 
 
 def mem_info() -> Tuple[Tuple[float, float, float], Tuple[float, float, float]]:
