@@ -26,6 +26,10 @@ def loc_to_phi(loc:Loc) -> Phi:
   tht, psi = loc
   return np.cos(tht / 2), np.exp(psi*1j) * np.sin(tht / 2)
 
+def phi_fidelity(x:Phi, y:Phi) -> float:
+  ''' |<ψ|φ>|^2 '''
+  return np.abs(np.dot(np.asarray(x).conj(), np.asarray(y))) ** 2
+
 
 # src: server/services/movloc.py
 def task_sim_loc(g:Game):

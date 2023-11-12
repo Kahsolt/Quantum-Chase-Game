@@ -347,14 +347,17 @@ class MainScene(Scene):
     return self.qubitNPs[self.me].getPos().length()
 
   def try_pick_item(self) -> str:
-    min_dist, ts = 1e5, None
+    max_fid, ts = 0, None
+    phi1 = self.phi
     for item, itemNP in self.itemNPs:
-      dist = loc_dist(self.loc, v_i2f(item['loc']))
-      if dist < min_dist:
-        min_dist = dist
+      phi2 = loc_to_phi(v_i2f(item['loc']))
+      fid = phi_fidelity(phi1, phi2)
+      if fid > max_fid:
+        max_fid = fid
         ts = item['ts']   # use as uid
 
-    if min_dist < PICK_RADIUS and ts is not None:
+    print('max_fid:', max_fid)
+    if max_fid > PICK_FID and ts is not None:
       self.emit_item_pick(ts)
 
   def try_use_photon(self):
@@ -793,6 +796,15 @@ class MainScene(Scene):
       rot = Vec2(*loc)
       pos = rot_to_pos(rot) * self.radius
       qubit.setPos(pos)
+    # dist
+    alice = loc_to_phi(v_i2f(game.players[ALICE].loc))
+    bob   = loc_to_phi(v_i2f(game.players[BOB]  .loc))
+    fid = phi_fidelity(alice, bob)
+    qubitRival = self.qubitNPs[get_rival(game.me)]
+    if fid >= VISIBLE_FID:
+      qubitRival.setAlphaScale((fid - VISIBLE_FID) / (1 - VISIBLE_FID))
+    else:
+      qubitRival.setAlphaScale(0)
 
   def task_update_qubit_loc_cond(self) -> bool:
     return not self.is_entangled

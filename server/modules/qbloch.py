@@ -11,6 +11,8 @@ from modules.utils import *
 Loc = Tuple[float, float]
 Phi = Tuple[complex, complex]
 
+eps = 1e-5    # tolerant network quantize error
+
 
 def rand_loc() -> Loc:
   ''' (θ, φ); θ in [0, pi], φ in [0, 2*pi] '''
@@ -51,8 +53,8 @@ def phi2prob(phi:Phi) -> Prob:
 def loc2phi(loc:Loc) -> Phi:
   ''' |phi> = cos(θ/2)|0> + e^(iφ)sin(θ/2)|1> '''
   tht, psi = loc
-  assert 0 <= tht <= pi, f'`tht` should be in range [0, pi], but got {tht}'
-  assert 0 <= psi <= 2*pi, f'`psi` should be in range [0, 2*pi], but got {psi}'
+  assert 0 - eps <= tht <= pi + eps, f'`tht` should be in range [0, pi], but got {tht}'
+  assert 0 - eps <= psi <= 2*pi + eps, f'`psi` should be in range [0, 2*pi], but got {psi}'
   return np.cos(tht / 2), np.exp(psi*1j) * np.sin(tht / 2)
 
 def phi2loc(phi:Phi) -> Loc:
@@ -62,9 +64,14 @@ def phi2loc(phi:Phi) -> Loc:
   tht = clock_angle(tht)
   psi = np.log(b / (np.sin(tht / 2) - 1e-15) + 1e-15).imag
   psi = clock_angle(psi)
-  assert 0 <= tht <= pi, f'`tht` should be in range [0, pi], but got {tht}'
-  assert 0 <= psi <= 2*pi, f'`psi` should be in range [0, 2*pi], but got {psi}'
+  assert 0 - eps <= tht <= pi + eps, f'`tht` should be in range [0, pi], but got {tht}'
+  assert 0 - eps <= psi <= 2*pi + eps, f'`psi` should be in range [0, 2*pi], but got {psi}'
   return tht, psi
+
+
+def phi_fidelity(x:Phi, y:Phi) -> float:
+  ''' |<ψ|φ>|^2 '''
+  return np.abs(np.dot(np.asarray(x).conj(), np.asarray(y))) ** 2
 
 
 if __name__ == '__main__':

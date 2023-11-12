@@ -25,6 +25,7 @@ def handle_item_pick(payload:Payload, rt:Runtime) -> HandlerRet:
 
   _ts: int = payload['ts']    # use as id
 
+  # FIXME: this API is not safe, only client checks the reaching distance :(
   spawn = item_vanish(rt, _ts)
   if spawn is None: return resp_error('spawn not found')
   emit_item_vanish(rt, spawn.ts)

@@ -118,7 +118,7 @@ def entgl_phi_str(phi:EntglPhi) -> str:
   return f'{a:.3f}|00> + {b:.3f}|01> + {c:.3f}|10> + {d:.3f}|11>'
 
 
-def loc_dist(x:Loc, y:Loc) -> float:
-  a, b = x
-  c, d = y
-  return ((a - c) ** 2 + (b - d) ** 2) ** 0.5
+def get_rival(me:Role) -> Role:
+  if me == BOB:   return ALICE
+  if me == ALICE: return BOB
+  raise ValueError(f'>> unknown role: {me}')

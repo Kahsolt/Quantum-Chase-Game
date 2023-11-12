@@ -5,8 +5,20 @@
 from numpy import pi
 
 
+# 游戏限时: Alice胜利条件
+TIME_LIMIT = 60 * 3
+
+# 抓住距离: Bob胜利条件
+CATCH_FID = 0.9995      # object 产生接触
+
+# 双方可见的距离
+VISIBLE_FID = 0.99      # 相距 4 倍 object 大小
+
 # 刷新帧率
 FPS = 30
+
+# 心跳间隔
+HEART_BEAT = 10
 
 # 角色名
 ALICE = 'Alice'
@@ -22,45 +34,45 @@ QUBIT_MAP = {
 MOVE_SPEED = 2 * pi / 60 * 3
 
 # 角色拾取范围
-PICK_RADIUS = 0.06
+PICK_FID = CATCH_FID
 
 # 物品生成速度
-SPAWN_INTERVAL = 15
+SPAWN_INTERVAL = 7
 
-# 物品生成数量上限
+# 物品生成同时存在数量上限
 SPAWN_LIMIT = 30
 
 # 物品生成的份数期望
-SPAWN_COUNT_PHOTON = 37
+SPAWN_COUNT_PHOTON = 57
 SPAWN_COUNT_GATE = 1.5
 
 # 物品存活时间期望中心
-SPAWN_TTL = 90
+SPAWN_TTL = 55
 
 # 物品生成权重
 SPAWN_WEIGHT = {
-  'photon': 500,
-  'theta': 50,
-  'X': 10,
-  'Y': 10,
-  'Z': 10,
-  'H': 10,
+  'photon': 200,
+  'theta': 60,      # should equal to p-rot gates
+  'X': 5,
+  'Y': 5,
+  'Z': 5,
+  'H': 20,
   'S': 10,
-  'T': 10,
-  'X2P': 20,
-  'Y2P': 20,
+  'T': 20,
+  'X2P': 10,
+  'Y2P': 10,
   'CNOT': 10,
   'SWAP': 5,
-  'RX': 5,
-  'RY': 5,
-  'RZ': 5,
+  'RX': 20,
+  'RY': 20,
+  'RZ': 20,
   'M': 5,
 }
 
 # 纬线圈提示时间
 LOC_QUERY_TTL = 10
 
-# 自动解除纠缠的时间
+# 自动解除纠缠的时间 (not used)
 DETGL_TTL = 15
 
 # 门操作计算噪声 (not used)

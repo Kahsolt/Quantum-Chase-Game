@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from flask_socketio import join_room, leave_room
 
-from modules.qbloch import rand_loc
+from modules.qbloch import rand_loc, loc2phi, phi_fidelity
 from modules.xcoin import toss_coin
 from modules.xrand import random_bit
 from services.handler import *
@@ -93,6 +93,7 @@ def emit_game_start(env:Env, rid:str):
   rt = Runtime(env, g)
   env.games[rid] = rt
   run_sched_task(rt.signal, 1/FPS, task_mov_sim, rt, cond=(lambda: not rt.is_entangled()))
+  run_sched_task(rt.signal, 1/FPS, task_game_over, rt)
   run_randu_sched_task(rt.signal, [SPAWN_INTERVAL/2, SPAWN_INTERVAL*2], task_item_spawn, rt)
 
   # distribute partial data
@@ -105,26 +106,24 @@ def emit_game_start(env:Env, rid:str):
   del env.waits[rid]
 
 
-def emit_game_settle(env:Env, rid:str, winner:str):
-  if rid not in env.games: return
-
+def emit_game_settle(rt:Runtime, winner:str):
   # stop all thread workers
-  env.games[rid].signal.set()
+  rt.signal.set()
 
   endTs = now_ts()
-  g = env.games[rid].game
+  g = rt.game
   g.winner = winner
   g.endTs = endTs
   data = {
     'winner': winner,
     'endTs': endTs,
   }
-  env.sio.emit('game:settle', resp_ok(data), to=rid)
+  rt.sio.emit('game:settle', resp_ok(data), to=rt.rid)
 
   # move playing => standby
-  for sid in env.games[rid].game.me:
-    leave_room(rid, sid)
-    env.conns[sid] = None
+  for sid in rt.env.games[rt.rid].game.me:
+    leave_room(rt.rid, sid)
+    rt.env.conns[sid] = None
 
 
 ''' utils '''
@@ -149,26 +148,16 @@ def make_pstate(g:Game, me:str) -> Game:
   return ret
 
 
-''' tasks '''
+''' task '''
 
-def task_mov_sim(rt:Runtime):
-  for id, player in rt.game.players.items():
-    dir = player.dir
-    if dir is None: continue
+def task_game_over(rt:Runtime):
+  if now_ts() - rt.game.startTs > TIME_LIMIT * 10**3:
+    emit_game_settle(rt, ALICE)
 
-    dir_f = dir * pi_4             # enum => angle
-    spd = v_i2f(player.spd)        # rescale
-    tht, psi = v_i2f(player.loc)   # rescale
-
-    U, R = np.sin(dir_f), np.cos(dir_f)
-    # 纬度角速度均匀，值截断 [0, pi]
-    tht_n = tht - U * spd / FPS
-    if tht_n <  0: tht_n = 0
-    if tht_n > pi: tht_n = pi
-    # 经度角速度等比放缩，值循环 [0, 2*pi]
-    #r = 1 / max(abs(tht - pi_2), pi_256)
-    r = 1   # 也依角速度均匀
-    psi_n = psi + (R * spd / FPS) * r
-    if psi_n <   0: psi_n += pi2
-    if psi_n > pi2: psi_n -= pi2
-    player.loc = v_f2i([tht_n, psi_n])
+  players = rt.game.players
+  fid = phi_fidelity(
+    loc2phi(v_i2f(players[ALICE].loc)),
+    loc2phi(v_i2f(players[BOB]  .loc)),
+  )
+  if fid >= CATCH_FID:
+    emit_game_settle(rt, BOB)
