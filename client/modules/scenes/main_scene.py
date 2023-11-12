@@ -39,14 +39,7 @@ def unpack_data(fn):
     print(f'>> [{fn.__name__}]: {pack}')
     scene.update_latency(pack['ts'])
     if not pack['ok']:
-      err = pack['error']
-      print('>> error:', err)
-      scene.txtError.setText(err)
-      Sequence(
-        LerpColorScaleInterval(scene.txtError, duration=0.2, colorScale=ALPHA_1),
-        LerpColorScaleInterval(scene.txtError, duration=3,   colorScale=ALPHA_1),
-        LerpColorScaleInterval(scene.txtError, duration=0.2, colorScale=ALPHA_0),
-      ).start()
+      scene.anim_error(pack['error'])
       return
     return fn(scene, pack['data'])
   return wrapper
@@ -60,7 +53,7 @@ def show_emit(fn):
 def no_entgl(fn):
   def wrapper(scene:'MainScene', *args, **kwargs):
     if scene.is_entangled:
-      print('>> cannot do this in entangle state')
+      scene.anim_error('cannot do this in entangle state')
       return
     return fn(scene, *args, **kwargs)
   return wrapper
@@ -143,8 +136,7 @@ class MainScene(Scene):
     inputState.watch('L', 'a', 'a-up', inputSource=inputState.WASD)
     inputState.watch('D', 's', 's-up', inputSource=inputState.WASD)
     inputState.watch('R', 'd', 'd-up', inputSource=inputState.WASD)
-    self.base.accept('space',     self.try_pick_item)
-    self.base.accept('shift-p',   self.try_use_photon)
+    self.base.accept('space', self.try_pick_item)
 
     self.taskMgr.add(self.handleKeyboard, 'handleKeyboard')
     self.taskMgr.add(self.handleMouse,    'handleMouse')
@@ -158,26 +150,20 @@ class MainScene(Scene):
     self.animLoops.extend(anims)
 
   def _create_player_controls(self):
-    self.txtError   = OnscreenText(text='', mayChange=True, parent=self.base.aspect2d,      scale=0.1, pos=(0, 0),         fg=RED,   align=TextNode.ACenter)
-    self.txtRole    = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft)
-    self.txtState   = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter)
-    self.txtPhotons = OnscreenText(text='', mayChange=True, parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=WHITE, align=TextNode.ALeft)
-    self.txtGates   = OnscreenText(text='', mayChange=True, parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.06), fg=WHITE, align=TextNode.ALeft)
+    self.txtError = OnscreenText(text='', mayChange=True, parent=self.base.aspect2d,      scale=0.1, pos=(0, 0),         fg=RED,   align=TextNode.ACenter)
+    self.txtRole  = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft)
+    self.txtState = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter)
+    self.txtItems: Dict[str, OnscreenText] = {}
+    self.btnItems: Dict[str, DirectButton] = {}
 
-    frm = DirectFrame(self.base.a2dBottomLeft)
-    self.guiNPs.append(frm) ; frm.hide()
-    if True:
-      for i, name in enumerate(GATE_NAMES):
-        offset = GATE_SCALE * (2 * i + 1) + GATE_PAD * i
-        DirectButton(frm, image=str(IMG_GATE(name)), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.try_use_gate, extraArgs=[name])
-
+    # silder - gate theta
     frm = DirectFrame(self.base.aspect2d)
     self.frm_theta = frm ; frm.hide()
     if True:
       self.v_gate: str = None
       self.v_theta: float = 0.0    # [-pi, pi]
 
-      def showValue():
+      def showValueTheta():
         nonlocal sldTheta, lblTheta
         n: int = round(sldTheta['value'])   # [-32, 32]
         self.v_theta = n / THETA_QV * pi    # [-pi, pi]
@@ -191,17 +177,78 @@ class MainScene(Scene):
           theta_str = f'{a*sign}/{b} pi'
         lblTheta.setText(f'theta = {theta_str}')
 
-      def onCancel():
+      def onCancelTheta():
         self.frm_theta.hide()
 
-      def onConfirm():
+      def onConfirmTheta():
         self.frm_theta.hide()
         self.use_param_rot_gate()
 
-      sldTheta = DirectSlider(frm, scale=0.5, pos=(0, 0, 0.15), range=(-THETA_QV, THETA_QV), value=0, pageSize=1, command=showValue, frameColor=WHITE)
+      sldTheta = DirectSlider(frm, scale=0.5, pos=(0, 0, 0.15), range=(-THETA_QV, THETA_QV), value=0, pageSize=1, command=showValueTheta, frameColor=WHITE)
       lblTheta = DirectLabel(frm, text='theta = 0', scale=0.075, pos=(0, 0, 0), text_style=BlackOnWhite, textMayChange=True)
-      DirectButton(frm, text='Cancel', text_bg=RED,   scale=0.1, pos=(-0.15, 0, -0.2), textMayChange=False, command=onCancel)
-      DirectButton(frm, text='OK',     text_bg=GREEN, scale=0.1, pos=(+0.15, 0, -0.2), textMayChange=False, command=onConfirm)
+      DirectButton(frm, text='Cancel', text_bg=RED,   scale=0.1, pos=(-0.15, 0, -0.2), textMayChange=False, command=onCancelTheta)
+      DirectButton(frm, text='OK',     text_bg=GREEN, scale=0.1, pos=(+0.15, 0, -0.2), textMayChange=False, command=onConfirmTheta)
+
+    # silder - photons
+    frm = DirectFrame(self.base.aspect2d)
+    self.frm_photon = frm ; frm.hide()
+    if True:
+      self.v_photon: int = 100
+
+      def showValuePhoton():
+        nonlocal sldPhoton, lblPhoton
+        n: int = round(sldPhoton['value'])   # [-32, 32]
+        self.v_photon = n
+        lblPhoton.setText(f'measure {n} photons')
+
+      def onCancelPhoton():
+        self.frm_photon.hide()
+
+      def onConfirmPhoton():
+        self.frm_photon.hide()
+        self.try_use_photon()
+
+      sldPhoton = DirectSlider(frm, scale=0.5, pos=(0, 0, 0.15), range=(1, 9999), value=100, pageSize=10, command=showValuePhoton, frameColor=WHITE)
+      lblPhoton = DirectLabel(frm, text='', scale=0.075, pos=(0, 0, 0), text_style=BlackOnWhite, textMayChange=True)
+      self.sldPhoton = sldPhoton
+      DirectButton(frm, text='Cancel', text_bg=RED,   scale=0.1, pos=(-0.15, 0, -0.2), textMayChange=False, command=onCancelPhoton)
+      DirectButton(frm, text='OK',     text_bg=GREEN, scale=0.1, pos=(+0.15, 0, -0.2), textMayChange=False, command=onConfirmPhoton)
+
+    # buttons - gate
+    frm = DirectFrame(self.base.a2dBottomLeft)
+    self.guiNPs.append(frm) ; frm.hide()
+    if True:
+      label_size = 0.08
+      label_offset = 0.1
+
+      for i, name in enumerate(GATE_NAMES):
+        offset = GATE_SCALE * (2 * i + 1) + GATE_PAD * i
+        btn = DirectButton(frm, image=IMG_GATE(name), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.try_use_gate, extraArgs=[name])
+        self.btnItems[name] = btn
+        txt = OnscreenText(text='', mayChange=True, parent=frm, scale=label_size, pos=(offset, GATE_SCALE+label_offset), fg=RED, align=TextNode.ACenter)
+        self.txtItems[name] = txt
+      offset += GATE_SPLIT_PAD
+
+      offset += 2 * GATE_SCALE + GATE_PAD
+      if 'theta':
+        name = 'theta'
+        btn = DirectButton(frm, image=IMG_AUX(name), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.anim_error, extraArgs=['try use R* gate'])
+        self.btnItems[name] = btn
+        txt = OnscreenText(text='', mayChange=True, parent=frm, scale=label_size, pos=(offset, GATE_SCALE+label_offset), fg=RED, align=TextNode.ACenter)
+        self.txtItems[name] = txt
+      offset += 2 * GATE_SCALE + GATE_PAD
+      if 'photon':
+        def tryShowPhtonFrame():
+          if self.player.photons <= 0:
+            self.anim_error('photon not enough')
+            return
+          self.frm_photon.show()
+
+        name = 'photon'
+        btn = DirectButton(frm, image=IMG_AUX(name), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=tryShowPhtonFrame)
+        self.btnItems[name] = btn
+        txt = OnscreenText(text='', mayChange=True, parent=frm, scale=label_size, pos=(offset, GATE_SCALE+label_offset), fg=RED, align=TextNode.ACenter)
+        self.txtItems[name] = txt
 
   def enter(self):
     self.base.setBackgroundColor(0.2, 0.2, 0.2, 0.5)
@@ -299,15 +346,6 @@ class MainScene(Scene):
   def radius(self) -> float:   # 球模型半径
     return self.qubitNPs[self.me].getPos().length()
 
-  def photons_str(self) -> str:
-    return f'photons({self.player.photons})'
-
-  def gates_str(self) -> str:
-    s = ''
-    for gate, cnt in self.player.gates.items():
-      s += f'{gate}({cnt}) '
-    return s
-
   def try_pick_item(self) -> str:
     min_dist, ts = 1e5, None
     for item, itemNP in self.itemNPs:
@@ -320,23 +358,31 @@ class MainScene(Scene):
       self.emit_item_pick(ts)
 
   def try_use_photon(self):
+    assert self.v_photon > 0
+
     if self.player.photons < 1:
-      print('>> item not enough')
+      self.anim_error('item not enough')
       return
 
-    self.emit_loc_query(min(self.player.photons, 100))
+    self.anim_item('photon')
+    self.emit_loc_query(min(self.player.photons, self.v_photon))
 
   def try_use_gate(self, gate:str):
     gate = GATE_NAME_MAPPING.get(gate, gate)
     if self.player.gates.get(gate, 0) < 1:
-      print('>> item not enough')
+      self.anim_error('item not enough')
       return
+    if gate in P_ROT_GATES:
+      if self.player.thetas < 1:
+        self.anim_error('has no theta')
+        return
 
+    self.anim_item(gate)
     if   gate == 'SWAP': self.emit_gate_swap()
     elif gate == 'CNOT': self.emit_gate_cnot()
     elif gate == 'M':    self.emit_gate_meas()
     else:
-      if gate in ['RX', 'RY', 'RZ']:
+      if gate in P_ROT_GATES:
         self.v_gate = gate
         self.frm_theta.show()
       else:
@@ -399,6 +445,25 @@ class MainScene(Scene):
     self.last_server_ts = server_ts
     self.vwin_latency.add(now_ts() - server_ts)
 
+  def reset_photon_slider_range(self, lim:int):
+    self.sldPhoton['range'] = (1, lim)
+  
+  def reset_item_button_count(self, name:str, cnt:int):
+    self.txtItems[name].setText(str(cnt))
+
+  def anim_error(self, err:str):
+    self.txtError.setText(err)
+    Sequence(
+      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_1),
+      LerpColorScaleInterval(self.txtError, duration=1.7, colorScale=ALPHA_1),
+      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_0),
+    ).start()
+
+  def anim_item(self, name:str):
+    name = GATE_NAME_MAPPING_INV.get(name, name)
+    btn = self.btnItems[name]
+    anim_button(btn).start()
+
   ''' handlers '''
 
   def on_connect(self):
@@ -426,22 +491,31 @@ class MainScene(Scene):
     else:
       self.txtRole.setFg(Vec4(1, 0.7, 0.7, 1))
     self.txtState.setText(phi_str(self.phi))
-    self.txtPhotons.setText(self.photons_str())
-    self.txtGates.setText(self.gates_str())
+
+    player = self.player
+    for name, txt in self.txtItems.items():
+      if name == 'photon':
+        self.reset_item_button_count(name, player.photons)
+        self.reset_photon_slider_range(player.photons)
+      elif name == 'theta':
+        self.reset_item_button_count(name, player.thetas)
+      else:
+        server_name = GATE_NAME_MAPPING.get(name, name)
+        self.reset_item_button_count(name, player.gates.get(server_name, 0))
 
     self.ui.switch_scene('Main')
 
   @unpack_data
   def on_game_settle(self, data:Data):
-    self.stop_threads()
-  
     winner = data['winner']
     endTs = data['endTs']
-    print(f'>> winner: {winner}, endTs: {endTs}')
+    self.anim_error(f'winner: {winner}')
+    
+    self.stop_threads()
 
     self.game = None
     self.sio.disconnect()
-    self.ui.switch_scene('Title')
+    #self.ui.switch_scene('Title')
 
   @unpack_data
   def on_game_sync(self, data:Data):
@@ -500,30 +574,40 @@ class MainScene(Scene):
   @unpack_data
   def on_item_gain(self, item:Data):
     player = self.player
-    if item['type'] == 'photon':
+    item_type = ItemType(item['type'])
+    item_id = item['id']
+    server_name = GATE_NAME_MAPPING_INV.get(item_id, item_id)
+    self.anim_item(server_name)
+    if item_type == ItemType.PHOTON:
       player.photons += item['count']
-      self.txtPhotons.setText(self.photons_str())
+      self.reset_item_button_count(server_name, player.photons)
+      self.reset_photon_slider_range(player.photons)
+    elif item_type == ItemType.THETA:
+      player.thetas += item['count']
+      self.reset_item_button_count(server_name, player.thetas)
     else:
-      item_id = item['id']
       if item_id in player.gates:
         player.gates[item_id] += item['count']
       else:
         player.gates[item_id] = item['count']
-      self.txtGates.setText(self.gates_str())
+      self.reset_item_button_count(server_name, player.gates[item_id])
 
   @unpack_data
   def on_item_cost(self, item:Data):
     player = self.player
-    if item['type'] == 'photon':
+    item_type = ItemType(item['type'])
+    item_id = item['id']
+    server_name = GATE_NAME_MAPPING_INV.get(item_id, item_id)
+    if item_type == ItemType.PHOTON:
       player.photons -= item['count']
-      self.txtPhotons.setText(self.photons_str())
+      self.reset_item_button_count(server_name, player.photons)
+      self.reset_photon_slider_range(player.photons)
+    elif item_type == ItemType.THETA:
+      player.thetas -= item['count']
+      self.reset_item_button_count(server_name, player.thetas)
     else:
-      item_id = item['id']
-      if item_id in player.gates:
-        player.gates[item_id] -= item['count']
-        if player.gates[item_id] == 0:
-          del player.gates[item_id]
-      self.txtGates.setText(self.gates_str())
+      player.gates[item_id] -= item['count']
+      self.reset_item_button_count(server_name, player.gates.get(item_id, 0))
 
   @unpack_data
   def on_gate_rot(self, data:Data):

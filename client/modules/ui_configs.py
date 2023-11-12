@@ -23,3 +23,4 @@ GATE_NAMES = [
   'SWAP', 'CNOT',
   'M',
 ]
+GATE_SPLIT_PAD = GATE_SCALE

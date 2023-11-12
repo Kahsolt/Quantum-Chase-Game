@@ -27,10 +27,10 @@ SCENE_BGM = {
 
 # string path in unix format
 _to_unix = lambda fp: str(fp).replace('\\', '/')
-IMG_START = _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / 'start.png')
-IMG_GATE = lambda name: _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / f'gate_{name}.png')
-IMG_QUBIT = lambda bit: _to_unix(IMAGE_PATH.relative_to(BASE_PATH) / f'qubit_{bit}.png')
-
+IMAGE_REL_PATH = IMAGE_PATH.relative_to(BASE_PATH)
+IMG_AUX   = lambda name: _to_unix(IMAGE_REL_PATH / f'{name}.png')
+IMG_QUBIT = lambda bit:  _to_unix(IMAGE_REL_PATH / f'qubit_{bit}.png')
+IMG_GATE  = lambda name: _to_unix(IMAGE_REL_PATH / f'gate_{name}.png')
 
 # internal assets
 AU_SFX_CLICK = 'models/audio/sfx/GUI_click.wav'

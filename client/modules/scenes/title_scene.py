@@ -35,13 +35,13 @@ class TitleScene(Scene):
       OnscreenText(parent=frm, text='where your universe', mayChange=False, scale=0.058, pos=(0, 0.22), fg=RED, align=TextNode.ACenter)
       DirectEntry(frm, initialText='test', scale=0.075, pos=(0, 0, 0.1), text_align=TextNode.ACenter, command=self.set_room, numLines=1, focus=True, textMayChange=True)
       OnscreenText(parent=frm, text='choose your bit decision', mayChange=False, scale=0.058, pos=(0, 0.00), fg=RED, align=TextNode.ACenter)
-      rads = [
+      radBits: List[DirectRadioButton] = [
         DirectRadioButton(frm, image=IMG_QUBIT(0), value=[0], variable=self.v_bit, scale=0.05, pos=(-0.1, 0, -0.12), textMayChange=False),
         DirectRadioButton(frm, image=IMG_QUBIT(1), value=[1], variable=self.v_bit, scale=0.05, pos=(+0.1, 0, -0.12), textMayChange=False),
       ]
-      for rad in rads: rad.setOthers(rads)
+      for rad in radBits: rad.setOthers(radBits)
       self.txtInfo = OnscreenText(parent=frm, text='', scale=0.06, pos=(0, -0.28), fg=(1.0, 1.0, 0.2, 1.0), align=TextNode.ACenter)
-      DirectButton(frm, text='Start!', textMayChange=False, scale=0.1, pos=(0, 0, -0.44), pad=(0.02, 0.03), command=self.try_join_game)
+      self.btnStart = DirectButton(frm, text='Start!', textMayChange=False, scale=0.1, pos=(0, 0, -0.44), pad=(0.02, 0.03), command=self.try_join_game)
 
   def _create_flying_core(self, name:str, flame_colors:Colors, offsetX:int=30):
     objs, anims = make_solar(self.loader, self.sceneNP, name, flame_colors[0], offsetX)
@@ -66,6 +66,8 @@ class TitleScene(Scene):
     self.v_room[0] = v
 
   def try_join_game(self):
+    anim_button(self.btnStart).start()
+
     room = self.v_room[0]
     r    = self.v_bit[0]
 

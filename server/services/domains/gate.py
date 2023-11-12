@@ -21,13 +21,19 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
 
   id, player, g = x_rt(rt)
 
-  item = Item(ItemType.GATE, ItemId(payload['gate']), 1)
+  _gate: str = payload['gate']
+  _theta: float = payload.get('theta', None)
+
+  item = Item(ItemType.GATE, ItemId(_gate), 1)
   try: item_cost(player, item)
   except Exception as e: return resp_error(e.args[0])
   emit_item_cost(rt, item)
 
-  _gate: str = payload['gate']
-  _theta: float = payload.get('theta', None)
+  if _theta:
+    item = Item(ItemType.THETA, ItemId.THETA, 1)
+    try: item_cost(player, item)
+    except Exception as e: return resp_error(e.args[0])
+    emit_item_cost(rt, item)
 
   if rt.is_entangled():
     qid = QUBIT_MAP[id]

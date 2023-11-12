@@ -9,7 +9,7 @@ from numpy import pi
 FPS = 30
 
 # 心跳间隔
-HEART_BEAT = 5
+HEART_BEAT = 10
 
 # 角色名
 ALICE = 'Alice'

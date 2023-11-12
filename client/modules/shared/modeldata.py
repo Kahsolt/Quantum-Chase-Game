@@ -16,6 +16,7 @@ class Player:
   spd: int = 0
   loc: List[int] = field(default_factory=lambda: [0, 0])
   photons: int = 0
+  thetas: int = 0
   gates: Dict[str, int] = field(default_factory=dict)
 
 @dataclass

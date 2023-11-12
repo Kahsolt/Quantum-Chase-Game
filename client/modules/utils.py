@@ -27,9 +27,12 @@ DIR_MAPPING = {
   (+1, -1): 7,
 }
 
-GATE_NAME_MAPPING = {
+GATE_NAME_MAPPING = {   # client => server
   'SX': 'X2P',
   'SY': 'Y2P',
+}
+GATE_NAME_MAPPING_INV = {   # server => client
+  v: k for k, v in GATE_NAME_MAPPING.items()
 }
 
 clip = lambda x, vmin, vmax: max(vmin, min(x, vmax))

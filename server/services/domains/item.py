@@ -75,6 +75,9 @@ def item_gain(player:Player, item:Item):
   if item.type == ItemType.PHOTON:
     player.photons += item.count
 
+  elif item.type == ItemType.THETA:
+    player.thetas += item.count
+
   elif item.type == ItemType.GATE:
     item_id = item.id.value
     if item_id not in player.gates:
@@ -88,7 +91,11 @@ def item_cost(player:Player, item:Item):
   if item.type == ItemType.PHOTON:
     if player.photons < item.count: raise ValueError(f'photons not enough, has: {player.photons}, need: {item.count}')
     player.photons -= item.count
-  
+
+  elif item.type == ItemType.THETA:
+    if player.thetas < item.count: raise ValueError(f'thetas not enough, has: {player.thetas}, need: {item.count}')
+    player.thetas -= item.count
+
   elif item.type == ItemType.GATE:
     item_id = item.id.value
     if player.gates.get(item_id, 0) < item.count: raise ValueError(f'gates not enough, has: {player.gates[item_id]}, need: {item.count}')
