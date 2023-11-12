@@ -65,6 +65,21 @@ class ValueWindow:
     return sum(self.v) / len(self.v) if self.v else 0
 
 
+def gcd(a:int, b:int) -> int:
+  if a == b: return a
+  if a > b: a, b = b, a   # assure a < b
+  if a == 1: return 1
+  while a != 0:
+    b %= a
+    a, b = b, a
+  return b
+
+def frac_norm(a:int, b:int) -> Tuple[int, int]:
+  m = gcd(a, b)
+  if m == 1: return a, b
+  return a // m, b // m
+
+
 def pos_to_rot(pos:Vec3) -> Vec2:
   v = pos.normalized()
   x, y, z = v.x, v.y, v.z

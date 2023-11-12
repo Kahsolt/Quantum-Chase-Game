@@ -113,7 +113,7 @@ def check_payload(payload:Payload, keys:List[Union[str, Tuple[str, type]]]):
     key, typ = key if isinstance(key, tuple) else (key, object)
     if key.endswith('?'):
       key = key[:-1]
-      if key in payload and not isinstance(payload[key], typ):
+      if key in payload and not payload[key] is None and not isinstance(payload[key], typ):
           type_wrong.append(key)
     else:
       if key not in payload:

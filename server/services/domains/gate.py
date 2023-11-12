@@ -16,7 +16,7 @@ Ops = Union[Operation, List[Operation]]
 def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
   try:
     check_payload(payload, [('gate', str), ('theta?', float)])
-    assert payload['gate'] in ROT_GATES
+    assert payload['gate'] in ROT_GATES + P_ROT_GATES
   except Exception as e: return resp_error(e.args[0])
 
   id, player, g = x_rt(rt)
@@ -27,12 +27,12 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
   emit_item_cost(rt, item)
 
   _gate: str = payload['gate']
-  _theta: float = payload.get('theta')
+  _theta: float = payload.get('theta', None)
 
   if rt.is_entangled():
     qid = QUBIT_MAP[id]
     state = entgl_evolve(rt,
-      (_gate, None, qid)
+      (_gate, _theta, qid)
     )
     return resp_ok({'state': v_f2i(state)}), Recp.ROOM
   else:
@@ -40,7 +40,7 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
     loc = run_single_evolve([
       ('RY',   tht, 0),
       ('RZ',   psi, 0),
-      (_gate, None, 0),
+      (_gate, _theta, 0),
     ])
     player.loc = v_f2i(loc)
     return resp_ok(mk_payload_loc(g, id)), Recp.ROOM

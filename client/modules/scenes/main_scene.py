@@ -2,7 +2,7 @@
 # Author: Armit
 # Create Time: 2023/11/03
 
-from time import sleep, time
+from time import sleep
 from threading import Thread, Event
 
 from socketio import Client
@@ -12,8 +12,9 @@ from panda3d.core import TextNode
 from direct.showbase.InputStateGlobal import inputState
 from direct.task import Task
 
-from modules.prefabs import *
+# fix import order, avoid name conflict for 'Sequence'
 from modules.utils import *
+from modules.prefabs import *
 from modules.ui_configs import *
 
 from .scene import Scene
@@ -38,7 +39,14 @@ def unpack_data(fn):
     print(f'>> [{fn.__name__}]: {pack}')
     scene.update_latency(pack['ts'])
     if not pack['ok']:
-      print('>> error:', pack['error'])
+      err = pack['error']
+      print('>> error:', err)
+      scene.txtError.setText(err)
+      Sequence(
+        LerpColorScaleInterval(scene.txtError, duration=0.2, colorScale=ALPHA_1),
+        LerpColorScaleInterval(scene.txtError, duration=3,   colorScale=ALPHA_1),
+        LerpColorScaleInterval(scene.txtError, duration=0.2, colorScale=ALPHA_0),
+      ).start()
       return
     return fn(scene, pack['data'])
   return wrapper
@@ -150,6 +158,7 @@ class MainScene(Scene):
     self.animLoops.extend(anims)
 
   def _create_player_controls(self):
+    self.txtError   = OnscreenText(text='', mayChange=True, parent=self.base.aspect2d,      scale=0.1, pos=(0, 0),         fg=RED,   align=TextNode.ACenter)
     self.txtRole    = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft)
     self.txtState   = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter)
     self.txtPhotons = OnscreenText(text='', mayChange=True, parent=self.base.a2dBottomLeft, scale=0.1, pos=(+0.04, +0.16), fg=WHITE, align=TextNode.ALeft)
@@ -161,6 +170,38 @@ class MainScene(Scene):
       for i, name in enumerate(GATE_NAMES):
         offset = GATE_SCALE * (2 * i + 1) + GATE_PAD * i
         DirectButton(frm, image=str(IMG_GATE(name)), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.try_use_gate, extraArgs=[name])
+
+    frm = DirectFrame(self.base.aspect2d)
+    self.frm_theta = frm ; frm.hide()
+    if True:
+      self.v_gate: str = None
+      self.v_theta: float = 0.0    # [-pi, pi]
+
+      def showValue():
+        nonlocal sldTheta, lblTheta
+        n: int = round(sldTheta['value'])   # [-32, 32]
+        self.v_theta = n / THETA_QV * pi    # [-pi, pi]
+        sign = 1 if n >= 0 else -1 
+        a, b = frac_norm(abs(n), THETA_QV)
+        if a == 0:
+          theta_str = '0'
+        elif a == b == 1:
+          theta_str = 'pi'
+        else:
+          theta_str = f'{a*sign}/{b} pi'
+        lblTheta.setText(f'theta = {theta_str}')
+
+      def onCancel():
+        self.frm_theta.hide()
+
+      def onConfirm():
+        self.frm_theta.hide()
+        self.use_param_rot_gate()
+
+      sldTheta = DirectSlider(frm, scale=0.5, pos=(0, 0, 0.15), range=(-THETA_QV, THETA_QV), value=0, pageSize=1, command=showValue, frameColor=WHITE)
+      lblTheta = DirectLabel(frm, text='theta = 0', scale=0.075, pos=(0, 0, 0), text_style=BlackOnWhite, textMayChange=True)
+      DirectButton(frm, text='Cancel', text_bg=RED,   scale=0.1, pos=(-0.15, 0, -0.2), textMayChange=False, command=onCancel)
+      DirectButton(frm, text='OK',     text_bg=GREEN, scale=0.1, pos=(+0.15, 0, -0.2), textMayChange=False, command=onConfirm)
 
   def enter(self):
     self.base.setBackgroundColor(0.2, 0.2, 0.2, 0.5)
@@ -294,7 +335,17 @@ class MainScene(Scene):
     if   gate == 'SWAP': self.emit_gate_swap()
     elif gate == 'CNOT': self.emit_gate_cnot()
     elif gate == 'M':    self.emit_gate_meas()
-    else:                self.emit_gate_rot(gate)
+    else:
+      if gate in ['RX', 'RY', 'RZ']:
+        self.v_gate = gate
+        self.frm_theta.show()
+      else:
+        self.emit_gate_rot(gate)
+
+  def use_param_rot_gate(self):
+    assert self.v_gate is not None
+    assert self.v_theta is not None
+    self.emit_gate_rot(self.v_gate, self.v_theta)
 
   def item_spawn_object(self, item:SpawnItem):
     model = self.loader.loadModel(MO_CUBE)
@@ -302,7 +353,6 @@ class MainScene(Scene):
     itemNP.setTextureOff()
     itemNP.setColor(1, 1, 0.8)
     itemNP.setScale(0.03)
-    labelNP = None      # TODO: add a label
     loc = v_i2f(item['loc'])
     rot = Vec2(*loc)
     pos = rot_to_pos(rot) * self.radius
@@ -583,9 +633,10 @@ class MainScene(Scene):
     self.sio.emit('loc:sync', {})
 
   @show_emit
-  def emit_gate_rot(self, gate:str):
+  def emit_gate_rot(self, gate:str, theta:float=None):
     self.sio.emit('gate:rot', {
       'gate': gate,
+      'theta': theta,
     })
 
   @show_emit
