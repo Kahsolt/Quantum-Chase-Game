@@ -406,6 +406,7 @@ class MainScene(Scene):
     rot = Vec2(*loc)
     pos = rot_to_pos(rot) * self.radius
     itemNP.setPos(pos)
+    LerpColorScaleInterval(itemNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0).start()
     self.itemNPs.append([item, itemNP])
 
   def item_vanish_object(self, ts:int):
@@ -436,6 +437,7 @@ class MainScene(Scene):
     hintNP.setTextureOff()
     hintNP.setColor(1.0, 1.0, 0.7)
     hintNP.reparentTo(self.blochNP)
+    LerpColorScaleInterval(hintNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0).start()
 
     def removeNodeTask(task):
       nonlocal hintNP
