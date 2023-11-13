@@ -408,6 +408,9 @@ class MainScene(Scene):
   def use_param_rot_gate(self):
     assert self.v_gate is not None
     assert self.v_theta is not None
+    if self.v_theta == 0.0:
+      self.anim_error('ignore when rot=0')
+      return
     self.emit_gate_rot(self.v_gate, self.v_theta)
 
   def item_spawn_object(self, item:SpawnItem):
