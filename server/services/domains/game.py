@@ -69,15 +69,6 @@ def emit_game_start(env:Env, rid:str):
   (sid_a, id_a), (sid_b, id_b) = decide_role(env.waits[rid])
 
   # init global game state
-  init_photon = 1000
-  init_theta = 99
-  init_gate = { g: 99 for g in ROT_GATES + P_ROT_GATES }
-  init_gate.update({
-    'H':    99,
-    'M':    99,
-    'CNOT': 99,
-    'SWAP': 99,
-  })
   g = Game(
     rid=rid,
     me={
@@ -85,8 +76,8 @@ def emit_game_start(env:Env, rid:str):
       sid_b: id_b,
     },
     players={
-      ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photons=init_photon, thetas=init_theta, gates=deepcopy(init_gate)),
-      BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photons=init_photon, thetas=init_theta, gates=deepcopy(init_gate)),
+      ALICE: Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photons=INIT_PHOTON, thetas=INIT_THETA, gates=deepcopy(INIT_GATE)),
+      BOB:   Player(spd=v_f2i(MOVE_SPEED), loc=[v_f2i(e) for e in rand_loc()], photons=INIT_PHOTON, thetas=INIT_THETA, gates=deepcopy(INIT_GATE)),
     },
     startTs=now_ts(),
   )

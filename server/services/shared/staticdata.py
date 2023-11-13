@@ -9,7 +9,7 @@ from numpy import pi
 FID_TOUCH = 0.9995
 
 # 游戏限时: Alice胜利条件
-TIME_LIMIT = 60 * 5
+TIME_LIMIT = 60 * 3 + 40
 
 # 游戏倒计时结束前提示 fid 的时间
 SHOW_FID_TTL = 60
@@ -36,17 +36,27 @@ QUBIT_MAP = {
   BOB:   1,
 }
 
-# 角色移动角速度: 假设 60s 转一圈
+# 角色移动角速度: 假设 20s 转一圈
 MOVE_SPEED = 2 * pi / 60 * 3
 
 # 角色拾取范围
 PICK_FID = FID_TOUCH
 
+# 初始道具
+INIT_PHOTON = 300
+INIT_THETA = 3
+INIT_GATE = {
+  'RX': 1,
+  'RY': 1,
+  'RZ': 1,
+  'H': 3,
+}
+
 # 物品生成速度
 SPAWN_INTERVAL = 7
 
 # 物品生成同时存在数量上限
-SPAWN_LIMIT = 30
+SPAWN_LIMIT = 35
 
 # 物品生成的份数期望
 SPAWN_COUNT_PHOTON = 57
