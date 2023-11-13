@@ -28,7 +28,7 @@ colors_cold = (
 )
 
 
-def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:Colors, length:int=3, width:float=5.0) -> Prefab:
+def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:Colors, length:int=3, width:float=5.0) -> Tuple[MotionTrail, Anims]:
   texture = loader.loadTexture(TX_PLASMA)
   
   trail = MotionTrail('trail', obj)
@@ -65,4 +65,4 @@ def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:Colors
     ),
   ]
 
-  return (trail,), anims
+  return trail, anims

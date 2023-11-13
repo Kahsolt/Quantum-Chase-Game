@@ -5,14 +5,20 @@
 from numpy import pi
 
 
+# object 产生接触的距离
+FID_TOUCH = 0.9995
+
 # 游戏限时: Alice胜利条件
-TIME_LIMIT = 60 * 3
+TIME_LIMIT = 60 * 5
+
+# 游戏倒计时结束前提示 fid 的时间
+SHOW_FID_TTL = 60
 
 # 抓住距离: Bob胜利条件
-CATCH_FID = 0.9995      # object 产生接触
+CATCH_FID = 0.998
 
 # 双方可见的距离
-VISIBLE_FID = 0.99      # 相距 4 倍 object 大小
+VISIBLE_FID = 0.95   # 相距 4 倍 object 大小
 
 # 刷新帧率
 FPS = 30
@@ -34,7 +40,7 @@ QUBIT_MAP = {
 MOVE_SPEED = 2 * pi / 60 * 3
 
 # 角色拾取范围
-PICK_FID = CATCH_FID
+PICK_FID = FID_TOUCH
 
 # 物品生成速度
 SPAWN_INTERVAL = 7

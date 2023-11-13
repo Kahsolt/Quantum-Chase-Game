@@ -5,11 +5,10 @@
 from modules.assets import *
 from modules.ui_configs import *
 
-from .trail import make_trail, colors_cold, colors_warm
 from .utils import *
 
 
-def make_bloch_qubits(loader:Loader, parent:NodePath) -> Prefab:
+def make_bloch_qubits(loader:Loader, parent:NodePath):
   # bloch sphere
   blochNP = loader.loadModel(MO_SPHERE_HIGHPOLY).copyTo(parent)
   blochNP.setTexture(loader.loadTexture(TX_PLASMA))
@@ -67,7 +66,4 @@ def make_bloch_qubits(loader:Loader, parent:NodePath) -> Prefab:
   qubit2NP.setPos(0, QUBIT_OFFSET, 0)
   qubit2NP.setScale(QUBIT_SIZE)
 
-  objs1, anims1 = make_trail(loader, parent, qubit1NP, colors_cold, length=1.5, width=2.0)
-  objs2, anims2 = make_trail(loader, parent, qubit2NP, colors_warm, length=1.5, width=2.0)
-
-  return (blochNP, qubit1NP, qubit2NP), (anims1 + anims2)
+  return (blochNP, qubit1NP, qubit2NP), []

@@ -121,9 +121,12 @@ def emit_game_settle(rt:Runtime, winner:str):
   rt.sio.emit('game:settle', resp_ok(data), to=rt.rid)
 
   # move playing => standby
-  for sid in rt.env.games[rt.rid].game.me:
-    leave_room(rt.rid, sid)
-    rt.env.conns[sid] = None
+  for sid in g.me:
+    try:
+      leave_room(rt.rid, sid)
+      rt.env.conns[sid] = None
+    except:
+      pass
 
 
 ''' utils '''

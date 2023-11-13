@@ -126,8 +126,11 @@ class MainScene(Scene):
     self.is_entangled = None
     self.entgl_phi: EntglPhi = None
 
+    # debug fid
+    self.show_fid: bool = False
+
     # network latency
-    self.txtLatentcy = OnscreenText(parent=self.base.a2dTopRight, scale=0.05, pos=(-0.02, -0.1), fg=WHITE, bg=BLACK, align=TextNode.ARight, mayChange=True)
+    self.txtLatentcy = OnscreenText(mayChange=True, parent=self.base.a2dTopRight, scale=0.05, pos=(-0.02, -0.1), fg=WHITE, bg=BLACK, align=TextNode.ARight)
     self.vwin_latency = ValueWindow(15)
 
     # controls
@@ -137,6 +140,7 @@ class MainScene(Scene):
     inputState.watch('D', 's', 's-up', inputSource=inputState.WASD)
     inputState.watch('R', 'd', 'd-up', inputSource=inputState.WASD)
     self.base.accept('space', self.try_pick_item)
+    self.base.accept('f9', self.toggle_show_fid)
 
     self.taskMgr.add(self.handleKeyboard, 'handleKeyboard')
     self.taskMgr.add(self.handleMouse,    'handleMouse')
@@ -150,9 +154,11 @@ class MainScene(Scene):
     self.animLoops.extend(anims)
 
   def _create_player_controls(self):
-    self.txtError = OnscreenText(text='', mayChange=True, parent=self.base.aspect2d,      scale=0.1, pos=(0, 0),         fg=RED,   align=TextNode.ACenter)
-    self.txtRole  = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopLeft,    scale=0.1, pos=(+0.04, -0.15), fg=WHITE, align=TextNode.ALeft)
-    self.txtState = OnscreenText(text='', mayChange=True, parent=self.base.a2dTopCenter,  scale=0.1, pos=(0,     -0.15), fg=WHITE, align=TextNode.ACenter)
+    self.txtError = OnscreenText(mayChange=True, parent=self.base.aspect2d,     scale=0.1,   pos=(0,     0),     fg=RED,    align=TextNode.ACenter)
+    self.txtState = OnscreenText(mayChange=True, parent=self.base.a2dTopCenter, scale=0.1,   pos=(0,     -0.15), fg=WHITE,  align=TextNode.ACenter)
+    self.txtRole  = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.1,   pos=(+0.04, -0.15), fg=WHITE,  align=TextNode.ALeft)
+    self.txtTTL   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.075, pos=(+0.04, -0.25), fg=RED,    align=TextNode.ALeft)
+    self.txtFid   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.075, pos=(+0.04, -0.35), fg=YELLOW, align=TextNode.ALeft)
     self.txtItems: Dict[str, OnscreenText] = {}
     self.btnItems: Dict[str, DirectButton] = {}
 
@@ -357,7 +363,7 @@ class MainScene(Scene):
         ts = item['ts']   # use as uid
 
     print('max_fid:', max_fid)
-    if max_fid > PICK_FID and ts is not None:
+    if max_fid >= PICK_FID and ts is not None:
       self.emit_item_pick(ts)
 
   def try_use_photon(self):
@@ -456,11 +462,11 @@ class MainScene(Scene):
   def reset_item_button_count(self, name:str, cnt:int):
     self.txtItems[name].setText(str(cnt))
 
-  def anim_error(self, err:str):
+  def anim_error(self, err:str, dur:float=1.7):
     self.txtError.setText(err)
     Sequence(
       LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_1),
-      LerpColorScaleInterval(self.txtError, duration=1.7, colorScale=ALPHA_1),
+      LerpColorScaleInterval(self.txtError, duration=dur, colorScale=ALPHA_1),
       LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_0),
     ).start()
 
@@ -468,6 +474,11 @@ class MainScene(Scene):
     name = GATE_NAME_MAPPING_INV.get(name, name)
     btn = self.btnItems[name]
     anim_button(btn).start()
+
+  def toggle_show_fid(self):
+    self.show_fid = not self.show_fid
+    if self.show_fid: self.txtFid.show()
+    else:             self.txtFid.hide()
 
   ''' handlers '''
 
@@ -490,6 +501,7 @@ class MainScene(Scene):
     self._game_sync(data)
     self.start_threads()
 
+    # show role
     self.txtRole.setText(self.me)
     if self.me == ALICE:
       self.txtRole.setFg(Vec4(0.7, 0.7, 1, 1))
@@ -497,8 +509,19 @@ class MainScene(Scene):
       self.txtRole.setFg(Vec4(1, 0.7, 0.7, 1))
     self.txtState.setText(phi_str(self.phi))
 
+    # give me a trail
+    qubit = self.qubitNPs[self.me]
+    color = {
+      ALICE: colors_cold,
+      BOB:   colors_warm,
+    }[self.me]
+    self.trailNP, anims = make_trail(self.loader, self.sceneNP, qubit, color, length=1.5, width=2.0)
+    for anim in anims: anim.loop()
+    self.animLoops.extend(anims)
+
+    # update players bag
     player = self.player
-    for name, txt in self.txtItems.items():
+    for name in self.txtItems:
       if name == 'photon':
         self.reset_item_button_count(name, player.photons)
         self.reset_photon_slider_range(player.photons)
@@ -514,13 +537,14 @@ class MainScene(Scene):
   def on_game_settle(self, data:Data):
     winner = data['winner']
     endTs = data['endTs']
-    self.anim_error(f'winner: {winner}')
-    
+    self.anim_error(f'winner: {winner}', 7)
+
     self.stop_threads()
 
     self.game = None
+    self.join_info = None
     self.sio.disconnect()
-    #self.ui.switch_scene('Title')
+    self.ui.switch_scene('Title')
 
   @unpack_data
   def on_game_sync(self, data:Data):
@@ -745,10 +769,12 @@ class MainScene(Scene):
   def start_threads(self):
     self.is_quit.clear()
     self.thrs.extend([
-      make_sched_task(self.is_quit, HEART_BEAT, self.task_heartbeat, cond=self.task_heartbeat_cond),
-      make_sched_task(self.is_quit, 3, self.task_update_latency_meter),
+      # ordered by interval
       make_sched_task(self.is_quit, 1/FPS, self.task_update_qubit_loc, cond=self.task_update_qubit_loc_cond),
       make_sched_task(self.is_quit, 2/FPS, self.task_update_state),
+      make_sched_task(self.is_quit, 1/2, self.task_game_over),
+      make_sched_task(self.is_quit, 3, self.task_update_latency_meter),
+      make_sched_task(self.is_quit, HEART_BEAT, self.task_heartbeat, cond=self.task_heartbeat_cond),
     ])
     for thr in self.thrs:
       thr.start()
@@ -764,6 +790,14 @@ class MainScene(Scene):
 
   def task_heartbeat_cond(self) -> bool:
     return now_ts() - self.last_server_ts > HEART_BEAT
+
+  def task_game_over(self):
+    tpass = (now_ts() - self.game.startTs) // 10**3
+    ttl = TIME_LIMIT - tpass
+    if ttl < SHOW_FID_TTL: self.show_fid = True
+    min = ttl // 60 ; min = str(min).rjust(2, '0')
+    sec = ttl  % 60 ; sec = str(sec).rjust(2, '0')
+    self.txtTTL.setText(f'{min}:{sec}')
 
   def task_update_latency_meter(self):
     latentcy: float = self.vwin_latency.mean
@@ -802,11 +836,14 @@ class MainScene(Scene):
     alice = loc_to_phi(v_i2f(game.players[ALICE].loc))
     bob   = loc_to_phi(v_i2f(game.players[BOB]  .loc))
     fid = phi_fidelity(alice, bob)
-    qubitRival = self.qubitNPs[get_rival(game.me)]
+    if self.show_fid:
+      self.txtFid.setText(f'fid: {fid:.5f}')
     if fid >= VISIBLE_FID:
-      qubitRival.setAlphaScale((fid - VISIBLE_FID) / (1 - VISIBLE_FID))
+      alpha = (fid - VISIBLE_FID) / (1 - VISIBLE_FID)
     else:
-      qubitRival.setAlphaScale(0)
+      alpha = 0
+    rival = get_rival(game.me)
+    self.qubitNPs[rival].setAlphaScale(alpha)
 
   def task_update_qubit_loc_cond(self) -> bool:
     return not self.is_entangled
