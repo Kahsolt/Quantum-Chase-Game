@@ -33,7 +33,7 @@ def hint_circle_show(taskMgr:TaskManager, parent:NodePath, R:float, z:float):
   hintNP = NodePath(lines.create())
   hintNP.setTextureOff()
   hintNP.reparentTo(parent)
-  LerpColorScaleInterval(hintNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0).start()
+  LerpColorScaleInterval(hintNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0, blendType=IN_OUT).start()
 
   def removeNodeTask(task):
     nonlocal hintNP

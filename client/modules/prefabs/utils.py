@@ -11,7 +11,7 @@ from panda3d.core import Texture
 from panda3d.core import LineSegs
 from direct.showbase.Loader import Loader
 from direct.motiontrail.MotionTrail import MotionTrail
-from direct.interval.LerpInterval import LerpNodePathInterval
+from direct.interval.LerpInterval import LerpNodePathInterval, LerpFunctionInterval
 from direct.interval.LerpInterval import LerpPosInterval, LerpHprInterval, LerpScaleInterval, LerpTexOffsetInterval
 from direct.interval.LerpInterval import LerpColorInterval, LerpColorScaleInterval
 from direct.interval.IntervalGlobal import Sequence, Parallel
@@ -33,3 +33,7 @@ ORANGE  = Vec4(1, 0.5, 0, 1)
 
 ALPHA_0 = Vec4(1, 1, 1, 0)
 ALPHA_1 = Vec4(1, 1, 1, 1)
+
+IN_OUT = 'easeInOut'
+IN  = 'easeIn'
+OUT = 'easeOut'

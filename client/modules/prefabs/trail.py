@@ -60,8 +60,8 @@ def make_trail(loader:Loader, parent:NodePath, obj:NodePath, flame_colors:Colors
     LerpTexOffsetInterval(trail.geom_node_path, 4, (1, 1), (1, 0)),
     # Grow and shrink
     Sequence(
-      LerpScaleInterval(trail, 0.3, width, 1.0, blendType='easeInOut'),
-      LerpScaleInterval(trail, 0.5, 1.0, width, blendType='easeInOut'),
+      LerpScaleInterval(trail, 0.3, width, 1.0, blendType=IN_OUT),
+      LerpScaleInterval(trail, 0.5, 1.0, width, blendType=IN_OUT),
     ),
   ]
 

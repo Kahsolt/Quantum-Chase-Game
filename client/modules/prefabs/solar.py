@@ -33,8 +33,8 @@ def make_solar(loader:Loader, parent:NodePath, name:str, color:Vec4, offsetX:int
     LerpHprInterval(planet, 10, (360, 0, 0)),
     # vibrate along z-axis (near-far)
     Sequence(
-      LerpPosInterval(star, 0.3, (0, 0, -3), (0, 0,  1), blendType='easeInOut'),
-      LerpPosInterval(star, 0.5, (0, 0,  1), (0, 0, -3), blendType='easeInOut'),
+      LerpPosInterval(star, 0.3, (0, 0, -3), (0, 0,  1), blendType=IN),
+      LerpPosInterval(star, 0.5, (0, 0,  1), (0, 0, -3), blendType=OUT),
     ),
   ]
 

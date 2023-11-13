@@ -11,12 +11,12 @@ def anim_button(btn:DirectButton) -> Sequence:
   scale_orig = btn['scale']
   anim = Parallel(
     Sequence(
-      LerpScaleInterval(btn, duration=0.1, scale=scale_orig*1.2),
-      LerpScaleInterval(btn, duration=0.1, scale=scale_orig),
+      LerpScaleInterval(btn, duration=0.1, scale=scale_orig*1.2, blendType=IN_OUT),
+      LerpScaleInterval(btn, duration=0.1, scale=scale_orig,     blendType=IN_OUT),
     ),
     Sequence(
-      LerpColorInterval(btn, duration=0.1, color=RED),
-      LerpColorInterval(btn, duration=0.1, color=WHITE),
+      LerpColorInterval(btn, duration=0.1, color=RED,   blendType=IN_OUT),
+      LerpColorInterval(btn, duration=0.1, color=WHITE, blendType=IN_OUT),
     ),
   )
   return anim

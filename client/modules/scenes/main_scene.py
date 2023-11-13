@@ -337,6 +337,10 @@ class MainScene(Scene):
     return self.game.me
 
   @property
+  def rival(self) -> str:
+    return get_rival(self.me)
+
+  @property
   def player(self) -> Player:
     return self.game.players[self.me]
 
@@ -349,8 +353,12 @@ class MainScene(Scene):
     return loc_to_phi(self.loc)
 
   @property
+  def qubit(self) -> NodePath:
+    return self.qubitNPs[self.me]
+
+  @property
   def radius(self) -> float:   # 球模型半径
-    return self.qubitNPs[self.me].getPos().length()
+    return self.qubit.getPos().length()
 
   def try_pick_item(self) -> str:
     max_fid, ts = 0, None
@@ -412,7 +420,7 @@ class MainScene(Scene):
     rot = Vec2(*loc)
     pos = rot_to_pos(rot) * self.radius
     itemNP.setPos(pos)
-    LerpColorScaleInterval(itemNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0).start()
+    LerpColorScaleInterval(itemNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0, blendType=IN_OUT).start()
     self.itemNPs.append([item, itemNP])
 
   def item_vanish_object(self, ts:int):
@@ -436,9 +444,9 @@ class MainScene(Scene):
   def anim_error(self, err:str, dur:float=1.7):
     self.txtError.setText(err)
     Sequence(
-      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_1),
+      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_1, blendType=IN),
       LerpColorScaleInterval(self.txtError, duration=dur, colorScale=ALPHA_1),
-      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_0),
+      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_0, blendType=OUT),
     ).start()
 
   def anim_item(self, name:str):
@@ -481,12 +489,11 @@ class MainScene(Scene):
     self.txtState.setText(phi_str(self.phi))
 
     # give me a trail
-    qubit = self.qubitNPs[self.me]
     color = {
       ALICE: colors_cold,
       BOB:   colors_warm,
     }[self.me]
-    self.trailNP, anims = make_trail(self.loader, self.sceneNP, qubit, color, length=1.5, width=2.0)
+    self.trailNP, anims = make_trail(self.loader, self.sceneNP, self.qubit, color, length=1.5, width=2.0)
     for anim in anims: anim.loop()
     self.animLoops.extend(anims)
 
@@ -626,10 +633,7 @@ class MainScene(Scene):
 
   @unpack_data
   def on_gate_cnot(self, data:Data):
-    if 'state' in data:
-      self._state_sync(data['state'])
-    else:
-      self._loc_sync(data)
+    self._state_sync(data['state'])
 
   @unpack_data
   def on_gate_meas(self, data:Data):
@@ -654,8 +658,23 @@ class MainScene(Scene):
     self.game = Game.from_dict(data)
 
   def _loc_sync(self, data:Data):
+    players = self.game.players
     for id, loc in data.items():
-      self.game.players[id].loc = loc
+      loc_old = players[id].loc
+      players[id].loc = loc
+
+      if False and id == self.me:
+        def lerp_loc(old, new):
+          def lerp_loc_fn(x:float):
+            mid = new * x + old * (1 - x)
+            self.qubit.setPos(rot_to_pos(mid) * self.radius)
+
+          self.loc_anim = True
+          LerpFunctionInterval(lerp_loc_fn, 0.2, blendType=IN_OUT).start()
+          sleep(0.2)
+          self.loc_anim = False
+
+        self.taskMgr.doMethodLater(0, lerp_loc, 'lerp_loc', extraArgs=[Vec2(*loc_old), Vec2(*loc)])
 
   def _state_sync(self, data:Data):
     state = v_i2f(data)
@@ -814,8 +833,7 @@ class MainScene(Scene):
       alpha = (fid - VISIBLE_FID) / (1 - VISIBLE_FID)
     else:
       alpha = 0
-    rival = get_rival(game.me)
-    self.qubitNPs[rival].setAlphaScale(alpha)
+    self.qubitNPs[self.rival].setAlphaScale(alpha)
 
   def task_update_qubit_loc_cond(self) -> bool:
     return not self.is_entangled
