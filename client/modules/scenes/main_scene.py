@@ -423,35 +423,6 @@ class MainScene(Scene):
         self.itemNPs.remove(bundle)
         return
 
-  def loc_hint_object(self, z:float):
-    R = self.radius           # 大圆半径
-    Z = z * R                 # 小圆纬度
-    r = (R**2 - Z**2) ** 0.5  # 小圆半径
-
-    lines = LineSegs()
-    n_div = 180
-    tht = pi * 2 / n_div
-    X = r * cos(0)
-    Y = r * sin(0)
-    lines.moveTo(X, Y, Z)
-    for i in range(n_div):
-      X = r * cos(i * tht)
-      Y = r * sin(i * tht)
-      lines.drawTo(X, Y, Z)
-    lines.setThickness(4)
-    hintNP = NodePath(lines.create())
-    hintNP.setTextureOff()
-    hintNP.setColor(1.0, 1.0, 0.7)
-    hintNP.reparentTo(self.blochNP)
-    LerpColorScaleInterval(hintNP, duration=0.5, colorScale=ALPHA_1, startColorScale=ALPHA_0).start()
-
-    def removeNodeTask(task):
-      nonlocal hintNP
-      hintNP.removeNode()
-      return Task.done
-
-    self.taskMgr.doMethodLater(LOC_QUERY_TTL, removeNodeTask, 'loc_hint')
-
   def update_latency(self, server_ts:int):
     self.last_server_ts = server_ts
     self.vwin_latency.add(now_ts() - server_ts)
@@ -543,6 +514,7 @@ class MainScene(Scene):
 
     self.game = None
     self.join_info = None
+    self.show_fid = False
     self.sio.disconnect()
     self.ui.switch_scene('Title')
 
@@ -581,7 +553,7 @@ class MainScene(Scene):
     print('freq:', freq)
     p0, p1 = [e / sum(freq) for e in freq]
     z = p0 * 2 - 1    # [-1, +1]
-    self.loc_hint_object(z)
+    hint_circle_show(self.taskMgr, self.blochNP, self.radius, z)
 
   @unpack_data
   def on_item_spawn(self, data:Data):
