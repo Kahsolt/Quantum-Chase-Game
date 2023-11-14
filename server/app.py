@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit
 from modules import *
 from services import *
 
-seed_everything(SEED)
+seed_everything(now_ts()//10**3)
 
 app = Flask(__name__, template_folder=HTML_PATH, static_folder=HTML_PATH, static_url_path='/static')
 app.register_blueprint(doc)
