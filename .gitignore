@@ -12,3 +12,8 @@ ref/thesis/*
 # doc raw
 doc/*.pptx
 doc/*.docx
+
+# vid
+vid/
+# distro
+Quantum-Chase/
