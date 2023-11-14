@@ -5,7 +5,7 @@
 from modules.qbloch import rand_loc
 from modules.qlocal import CircuitPack, shot_circuit
 from services.handler import *
-from services.rand import random_gaussian_expect, random_choice
+from services.rand import random_gaussian_expect
 from services.utils import now_ts
 
 ''' globals '''
@@ -122,8 +122,15 @@ def task_item_spawn(rt:Runtime):
   # try spawn something
   if len(rt.spawns) < SPAWN_LIMIT:
     idx = run_spawn_rand()
-    type = ItemType.GATE if idx > 0 else ItemType.PHOTON
-    count = round(random_gaussian_expect(SPAWN_COUNT_GATE if type == ItemType.GATE else SPAWN_COUNT_PHOTON, vmin=1))
+    if   idx == 0: type = ItemType.PHOTON
+    elif idx == 1: type = ItemType.THETA
+    else:          type = ItemType.GATE
+    count_exp = {
+      ItemType.PHOTON: SPAWN_COUNT_PHOTON,
+      ItemType.THETA:  SPAWN_COUNT_THETA,
+      ItemType.GATE:   SPAWN_COUNT_GATE,
+    }[type]
+    count = round(random_gaussian_expect(count_exp, vmin=1))
     item = Item(type, ItemId(list(SPAWN_WEIGHT.keys())[idx]), count)
     spawn = SpawnItem(
       item,

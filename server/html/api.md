@@ -292,6 +292,19 @@ interface { }
 
 ----
 
+#### env:noise 改变环境噪声
+
+通知客户端改变环境噪声
+
+```typescript
+// emit (broadcast)
+interface {
+  noise: float
+}
+```
+
+----
+
 ### Debug
 
 => websocket test page: [/ws](/ws)

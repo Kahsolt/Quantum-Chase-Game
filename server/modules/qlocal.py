@@ -116,22 +116,26 @@ def sample_circuit(pack:CircuitPack, shots:int=SHOTS) -> Freq:
   return cntr2freq(res, circuit)
 
 
-def save_circuit(pack:CircuitPack, fp:Path):
+def save_circuit(pack:CircuitPack, fp:Path, extras:Any=None):
   circuit, params = pack
   data = {
     'isq': [e.strip() for e in circuit.strip().split('\n')],
     'params': params,
   }
+  if extras is not None: data['extras'] = extras
   with open(fp, 'w', encoding='utf-8') as fh:
     json.dump(data, fh, indent=2, ensure_ascii=False)
   print(f'>> save to {fp}')
 
 
-def load_circuit(fp:Path) -> CircuitPack:
+def load_circuit(fp:Path, has_extras:bool=False) -> CircuitPack:
   with open(fp, 'r', encoding='utf-8') as fh:
     data = json.load(fh)
   print(f'>> load from {fp}')
-  return '\n'.join(data['isq']), data['params']
+  if has_extras:
+    return '\n'.join(data['isq']), data['params'], data['extras']
+  else:
+    return '\n'.join(data['isq']), data['params']
 
 
 if __name__ == '__main__':

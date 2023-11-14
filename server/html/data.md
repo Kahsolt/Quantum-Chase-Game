@@ -11,11 +11,11 @@
 
 ```typescript
 interface Game {
+  rid: str                  // 房间 id
   me: string                // 我的角色 id
-  players: {                // 各玩家
+  players: {                // 各玩家私有数据
     [id: string]: Player
   }
-  entgl: bool               // 是否处于全局纠缠态
   winner: string            // 游戏胜利方角色
   startTs: timestamp        // 游戏开始时间
   endTs: timestamp          // 游戏结束时间
@@ -26,6 +26,7 @@ interface Player {
   spd: int                  // 移动秒角速度 spd
   loc: [int, int]           // bloch球面位置 (tht, psi)
   photons: int              // 光子 (道具)
+  thetas: int               // 旋转角度 (道具)
   gates: {                  // 量子门 (道具)
     [name: string]: int
   }

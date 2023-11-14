@@ -6,6 +6,7 @@ from modules.qbloch import phi2loc, eliminate_gphase, Loc
 from modules.qlocal import run_circuit_state, shot_circuit, dec2bin
 from modules.qcircuit import Operation, convert_circuit
 from services.handler import *
+from services.rand import random_float, random_bit
 from services.domains.item import item_cost, emit_item_cost
 
 Ops = Union[Operation, List[Operation]]
@@ -37,9 +38,10 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
 
   if rt.is_entangled():
     qid = QUBIT_MAP[id]
-    state = entgl_evolve(rt,
-      (_gate, _theta, qid)
-    )
+    state = entgl_evolve(rt, [
+      (_gate, _theta, qid),
+      *random_noise_gate(rt, qid),
+    ])
     return resp_ok({'state': v_f2i(state)}), Recp.ROOM
   else:
     tht, psi = v_i2f(player.loc)
@@ -47,6 +49,7 @@ def handle_gate_rot(payload:Payload, rt:Runtime) -> HandlerRet:
       ('RY',   tht, 0),
       ('RZ',   psi, 0),
       (_gate, _theta, 0),
+      *random_noise_gate(rt, 0),
     ])
     player.loc = v_f2i(loc)
     return resp_ok(mk_payload_loc(g, id)), Recp.ROOM
@@ -69,6 +72,8 @@ def handle_gate_swap(payload:Payload, rt:Runtime) -> HandlerRet:
       ('CNOT', None, (qid0, qid1)),
       ('CNOT', None, (qid1, qid0)),
       ('CNOT', None, (qid0, qid1)),
+      *random_noise_gate(rt, qid0),
+      *random_noise_gate(rt, qid1),
     ])
     return resp_ok({'state': v_f2i(state)}), Recp.ROOM
   else:
@@ -96,6 +101,8 @@ def handle_gate_cnot(payload:Payload, rt:Runtime) -> HandlerRet:
     ('RY',   tht1,  qid1),
     ('RZ',   psi1,  qid1),
     ('CNOT', None, (qid1, qid0)),
+    *random_noise_gate(rt, qid0),
+    *random_noise_gate(rt, qid1),
   ])
   return resp_ok({'state': v_f2i(state)}), Recp.ROOM
 
@@ -116,6 +123,7 @@ def handle_gate_meas(payload:Payload, rt:Runtime) -> HandlerRet:
     loc = run_single_mesaure([
       ('RY', tht, 0),
       ('RZ', psi, 0),
+      *random_noise_gate(rt, 0),
     ])
     player.loc = v_f2i(loc)
     return resp_ok(mk_payload_loc(g, id)), Recp.ROOM
@@ -127,6 +135,10 @@ def emit_entgl_enter(rt:Runtime):
 
 def emit_entgl_break(rt:Runtime):
   rt.sio.emit('entgl:break', resp_ok(), to=rt.rid)
+
+
+def emit_env_noise(rt:Runtime, noise:float):
+  rt.sio.emit('env:noise', resp_ok({'noise': noise}), to=rt.rid)
 
 
 ''' utils '''
@@ -158,6 +170,9 @@ def entgl_evolve(rt:Runtime, op:Ops) -> List[float]:
       player.dir = None
     emit_entgl_enter(rt)
 
+  # refresh detangle ttl
+  rt.entgl_ttl = DETGL_TTL
+
   # continue state evolution
   if isinstance(op, list):
     rt.circuit.extend(op)
@@ -185,3 +200,29 @@ def entgl_break(rt:Runtime):
   # unfreeze movloc & disentangle
   rt.circuit.clear()
   emit_entgl_break(rt)
+
+
+def random_noise_gate(rt:Runtime, qid:int) -> List[Operation]:
+  if rt.noise == 0.0: return []
+  return [
+    ('RX', random_float() * rt.noise, qid),
+    ('RY', random_float() * rt.noise, qid),
+    ('RZ', random_float() * rt.noise, qid),
+  ]
+
+
+''' task '''
+
+def task_entgl_break(rt:Runtime):
+  rt.entgl_ttl -= 1
+  if rt.entgl_ttl < 0:
+    entgl_break(rt)
+
+
+def task_env_noise(rt:Runtime):
+  if random_bit():
+    noise = random_float()**0.5 * ENV_NOISE
+  else:
+    noise = 0.0
+  rt.noise = noise
+  emit_env_noise(rt, noise)

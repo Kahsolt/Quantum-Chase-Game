@@ -39,7 +39,7 @@ def unpack_data(fn):
     print(f'>> [{fn.__name__}]: {pack}')
     scene.update_latency(pack['ts'])
     if not pack['ok']:
-      scene.anim_error(pack['error'])
+      scene.show_info(pack['error'])
       return
     return fn(scene, pack['data'])
   return wrapper
@@ -53,7 +53,7 @@ def show_emit(fn):
 def no_entgl(fn):
   def wrapper(scene:'MainScene', *args, **kwargs):
     if scene.is_entangled:
-      scene.anim_error('cannot do this in entangle state')
+      scene.show_info('cannot do this in entangle state')
       return
     return fn(scene, *args, **kwargs)
   return wrapper
@@ -154,11 +154,12 @@ class MainScene(Scene):
     self.animLoops.extend(anims)
 
   def _create_player_controls(self):
-    self.txtError = OnscreenText(mayChange=True, parent=self.base.aspect2d,     scale=0.1,   pos=(0,     0),     fg=RED,    align=TextNode.ACenter)
-    self.txtState = OnscreenText(mayChange=True, parent=self.base.a2dTopCenter, scale=0.1,   pos=(0,     -0.15), fg=WHITE,  align=TextNode.ACenter)
-    self.txtRole  = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.1,   pos=(+0.04, -0.15), fg=WHITE,  align=TextNode.ALeft)
-    self.txtTTL   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.075, pos=(+0.04, -0.25), fg=RED,    align=TextNode.ALeft)
-    self.txtFid   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.075, pos=(+0.04, -0.35), fg=YELLOW, align=TextNode.ALeft)
+    self.txtInfo  = OnscreenText(mayChange=True, parent=self.base.aspect2d,     scale=0.1,  pos=(0,     0),     fg=RED,    align=TextNode.ACenter)
+    self.txtState = OnscreenText(mayChange=True, parent=self.base.a2dTopCenter, scale=0.1,  pos=(0,     -0.15), fg=WHITE,  align=TextNode.ACenter)
+    self.txtRole  = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.1,  pos=(+0.04, -0.15), fg=WHITE,  align=TextNode.ALeft)
+    self.txtTTL   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.06, pos=(+0.04, -0.23), fg=RED,    align=TextNode.ALeft)
+    self.txtNoise = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.06, pos=(+0.04, -0.31), fg=YELLOW, align=TextNode.ALeft)
+    self.txtFid   = OnscreenText(mayChange=True, parent=self.base.a2dTopLeft,   scale=0.06, pos=(+0.04, -0.39), fg=LIME,   align=TextNode.ALeft)
     self.txtItems: Dict[str, OnscreenText] = {}
     self.btnItems: Dict[str, DirectButton] = {}
 
@@ -238,7 +239,7 @@ class MainScene(Scene):
       offset += 2 * GATE_SCALE + GATE_PAD
       if 'theta':
         name = 'theta'
-        btn = DirectButton(frm, image=IMG_AUX(name), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.anim_error, extraArgs=['try use R* gate'])
+        btn = DirectButton(frm, image=IMG_AUX(name), textMayChange=False, scale=GATE_SCALE, pos=(offset, 0, GATE_SCALE), command=self.show_info, extraArgs=['try use R* gate'])
         self.btnItems[name] = btn
         txt = OnscreenText(text='', mayChange=True, parent=frm, scale=label_size, pos=(offset, GATE_SCALE+label_offset), fg=RED, align=TextNode.ACenter)
         self.txtItems[name] = txt
@@ -246,7 +247,7 @@ class MainScene(Scene):
       if 'photon':
         def tryShowPhtonFrame():
           if self.player.photons <= 0:
-            self.anim_error('photon not enough')
+            self.show_info('photon not enough')
             return
           self.frm_photon.show()
 
@@ -378,7 +379,7 @@ class MainScene(Scene):
     assert self.v_photon > 0
 
     if self.player.photons < 1:
-      self.anim_error('item not enough')
+      self.show_info('photon not enough')
       return
 
     self.anim_item('photon')
@@ -387,11 +388,11 @@ class MainScene(Scene):
   def try_use_gate(self, gate:str):
     gate = GATE_NAME_MAPPING.get(gate, gate)
     if self.player.gates.get(gate, 0) < 1:
-      self.anim_error('item not enough')
+      self.show_info('gate not enough')
       return
     if gate in P_ROT_GATES:
       if self.player.thetas < 1:
-        self.anim_error('has no theta')
+        self.show_info('has no theta')
         return
 
     self.anim_item(gate)
@@ -409,7 +410,7 @@ class MainScene(Scene):
     assert self.v_gate is not None
     assert self.v_theta is not None
     if self.v_theta == 0.0:
-      self.anim_error('ignore when rot=0')
+      self.show_info('ignored when rot=0')
       return
     self.emit_gate_rot(self.v_gate, self.v_theta)
 
@@ -444,12 +445,13 @@ class MainScene(Scene):
   def reset_item_button_count(self, name:str, cnt:int):
     self.txtItems[name].setText(str(cnt))
 
-  def anim_error(self, err:str, dur:float=1.7):
-    self.txtError.setText(err)
+  def show_info(self, info:str, dur:float=1.7, color=RED):
+    self.txtInfo.setText(info)
+    self.txtInfo.setFg(color)
     Sequence(
-      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_1, blendType=IN),
-      LerpColorScaleInterval(self.txtError, duration=dur, colorScale=ALPHA_1),
-      LerpColorScaleInterval(self.txtError, duration=0.2, colorScale=ALPHA_0, blendType=OUT),
+      LerpColorScaleInterval(self.txtInfo, duration=0.2, colorScale=ALPHA_1, blendType=IN),
+      LerpColorScaleInterval(self.txtInfo, duration=dur, colorScale=ALPHA_1),
+      LerpColorScaleInterval(self.txtInfo, duration=0.2, colorScale=ALPHA_0, blendType=OUT),
     ).start()
 
   def anim_item(self, name:str):
@@ -483,13 +485,17 @@ class MainScene(Scene):
     self._game_sync(data)
     self.start_threads()
 
-    # show role
+    # show role info
     self.txtRole.setText(self.me)
     if self.me == ALICE:
-      self.txtRole.setFg(Vec4(0.7, 0.7, 1, 1))
+      color = Vec4(0.7, 0.7, 1, 1)
+      goal = 'You are Alice, find yourself and hide from Bob!'
     else:
-      self.txtRole.setFg(Vec4(1, 0.7, 0.7, 1))
+      color = Vec4(1, 0.7, 0.7, 1)
+      goal = 'You are Bob, find yourself and go catch Alice!'
+    self.txtRole.setFg(color)
     self.txtState.setText(phi_str(self.phi))
+    self.show_info(goal, 5, color)
 
     # give me a trail
     color = {
@@ -518,7 +524,7 @@ class MainScene(Scene):
   def on_game_settle(self, data:Data):
     winner = data['winner']
     endTs = data['endTs']
-    self.anim_error(f'winner: {winner}', 7)
+    self.show_info(f'winner: {winner}', 7)
 
     self.stop_threads()
 
@@ -526,6 +532,13 @@ class MainScene(Scene):
     self.join_info = None
     self.show_fid = False
     self.sio.disconnect()
+
+    self.txtInfo.setText('')
+    self.txtFid.setText('')
+    self.txtNoise.setText('')
+    self.txtRole.setText('')
+    self.txtState.setText('')
+
     self.ui.switch_scene('Title')
 
   @unpack_data
@@ -645,6 +658,7 @@ class MainScene(Scene):
   @unpack_data
   def on_entgl_enter(self, data:Data):
     self.is_entangled = True
+    self.show_info('Enter entanglement!')
     for player in self.game.players.values():
       player.dir = None
     for qubitNP in self.qubitNPs.values():
@@ -653,9 +667,15 @@ class MainScene(Scene):
   @unpack_data
   def on_entgl_break(self, data:Data):
     self.is_entangled = False
+    self.show_info('Break entanglement!')
     self.emit_loc_sync()
     for qubitNP in self.qubitNPs.values():
       qubitNP.show()
+
+  @unpack_data
+  def on_env_noise(self, data:Data):
+    noise = data['noise']
+    self.txtNoise.setText(f'noise: {noise:.3f}')
 
   def _game_sync(self, data:Data):
     self.game = Game.from_dict(data)
@@ -788,10 +808,12 @@ class MainScene(Scene):
   def task_game_over(self):
     tpass = (now_ts() - self.game.startTs) // 10**3
     ttl = TIME_LIMIT - tpass
-    if ttl < SHOW_FID_TTL: self.show_fid = True
+    if ttl < SHOW_FID_TTL and not self.show_fid:
+      self.show_info('Time is ending, now your distance will be shown', 5, YELLOW)
+      self.show_fid = True
     min = ttl // 60 ; min = str(min).rjust(2, '0')
     sec = ttl  % 60 ; sec = str(sec).rjust(2, '0')
-    self.txtTTL.setText(f'{min}:{sec}')
+    self.txtTTL.setText(f'time: {min}:{sec}')
 
   def task_update_latency_meter(self):
     latentcy: float = self.vwin_latency.mean
@@ -831,7 +853,7 @@ class MainScene(Scene):
     bob   = loc_to_phi(v_i2f(game.players[BOB]  .loc))
     fid = phi_fidelity(alice, bob)
     if self.show_fid:
-      self.txtFid.setText(f'fid: {fid:.5f}')
+      self.txtFid.setText(f'fidelity: {fid:.5f}')
     if fid >= VISIBLE_FID:
       alpha = (fid - VISIBLE_FID) / (1 - VISIBLE_FID)
     else:

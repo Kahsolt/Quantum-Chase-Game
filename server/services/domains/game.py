@@ -13,6 +13,7 @@ from services.handler import *
 from services.tasks import run_sched_task, run_randu_sched_task
 from services.domains.mov import task_mov_sim
 from services.domains.item import task_item_spawn
+from services.domains.gate import task_entgl_break, task_env_noise, emit_env_noise
 
 
 ''' handlers & emitters '''
@@ -83,8 +84,10 @@ def emit_game_start(env:Env, rid:str):
   )
   rt = Runtime(env, g)
   env.games[rid] = rt
-  run_sched_task(rt.signal, 1/FPS, task_mov_sim, rt, cond=(lambda: not rt.is_entangled()))
-  run_sched_task(rt.signal, 1/FPS, task_game_over, rt)
+  run_sched_task(rt.signal, 1/FPS, task_mov_sim,     rt, cond=(lambda: not rt.is_entangled()))
+  run_sched_task(rt.signal, 2/FPS, task_game_over,   rt)
+  run_sched_task(rt.signal, 1,     task_entgl_break, rt, cond=rt.is_entangled)
+  run_randu_sched_task(rt.signal, [NOISE_CHANGE_INTERVAL/2, NOISE_CHANGE_INTERVAL*2], task_env_noise, rt)
   run_randu_sched_task(rt.signal, [SPAWN_INTERVAL/2, SPAWN_INTERVAL*2], task_item_spawn, rt)
 
   # distribute partial data

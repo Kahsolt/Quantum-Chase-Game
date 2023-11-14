@@ -30,11 +30,11 @@
 <p>⚠ 出于帧同步的要求，所有可变量的 float 类型数据都统一放大为 int 类型以进行网络传输</p>
 <p>⚪ Playerdata</p>
 <pre data-role="codeBlock" data-info="typescript" class="language-typescript typescript"><code><span class="token keyword keyword-interface">interface</span> <span class="token class-name">Game</span> <span class="token punctuation">{</span>
+  rid<span class="token operator">:</span> str                  <span class="token comment">// 房间 id</span>
   me<span class="token operator">:</span> <span class="token builtin">string</span>                <span class="token comment">// 我的角色 id</span>
-  players<span class="token operator">:</span> <span class="token punctuation">{</span>                <span class="token comment">// 各玩家</span>
+  players<span class="token operator">:</span> <span class="token punctuation">{</span>                <span class="token comment">// 各玩家私有数据</span>
     <span class="token punctuation">[</span>id<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> Player
   <span class="token punctuation">}</span>
-  entgl<span class="token operator">:</span> bool               <span class="token comment">// 是否处于全局纠缠态</span>
   winner<span class="token operator">:</span> <span class="token builtin">string</span>            <span class="token comment">// 游戏胜利方角色</span>
   startTs<span class="token operator">:</span> timestamp        <span class="token comment">// 游戏开始时间</span>
   endTs<span class="token operator">:</span> timestamp          <span class="token comment">// 游戏结束时间</span>
@@ -45,6 +45,7 @@
   spd<span class="token operator">:</span> int                  <span class="token comment">// 移动秒角速度 spd</span>
   loc<span class="token operator">:</span> <span class="token punctuation">[</span>int<span class="token punctuation">,</span> int<span class="token punctuation">]</span>           <span class="token comment">// bloch球面位置 (tht, psi)</span>
   photons<span class="token operator">:</span> int              <span class="token comment">// 光子 (道具)</span>
+  thetas<span class="token operator">:</span> int               <span class="token comment">// 旋转角度 (道具)</span>
   gates<span class="token operator">:</span> <span class="token punctuation">{</span>                  <span class="token comment">// 量子门 (道具)</span>
     <span class="token punctuation">[</span>name<span class="token operator">:</span> <span class="token builtin">string</span><span class="token punctuation">]</span><span class="token operator">:</span> int
   <span class="token punctuation">}</span>

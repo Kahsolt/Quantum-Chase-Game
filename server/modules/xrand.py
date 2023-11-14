@@ -47,9 +47,9 @@ def _prepare_dice(n:int) -> CircuitPack:
     if n & (n - 1) == 0:    # power of 2, use H only
       nq = int(np.log2(n))
       circuit = '\n'.join([
-        f'qbit q[{nq}];'
-        *[f'H({i});' for i in range(nq)],
-        f'M(q[0:{nq}]);'
+        f'qbit q[{nq}];',
+        *[f'H(q[{i}]);' for i in range(nq)],
+        f'M(q[0:{nq}]);',
       ])
       pack = circuit, []
     else:

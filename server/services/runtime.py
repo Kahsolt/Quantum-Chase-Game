@@ -24,6 +24,10 @@ class Runtime:
   spawns: Dict[int, SpawnItem] = field(default_factory=dict)
   # entgl_circuit: each op on the circuit
   circuit: List[Operation] = field(default_factory=list)
+  # entgl_ttl
+  entgl_ttl: float = None
+  # env noise
+  noise: float = 0.0
 
   @property
   def sio(self): return self.env.sio
